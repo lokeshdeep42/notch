@@ -22,10 +22,16 @@ let package = Package(
             dependencies: ["Services", "DesignSystem"],
             path: "Sources/NotchCore"
         ),
+        .target(
+            name: "FeatureNowPlaying",
+            dependencies: ["NotchCore", "Services", "DesignSystem"],
+            path: "Sources/Features/NowPlaying"
+        ),
         .executableTarget(
             name: "Sill",
             dependencies: [
                 "NotchCore", "Services", "DesignSystem",
+                "FeatureNowPlaying",
             ],
             path: "App",
             exclude: ["Info.plist"]
@@ -34,6 +40,7 @@ let package = Package(
             name: "SillTests",
             dependencies: [
                 "NotchCore", "Services", "DesignSystem",
+                "FeatureNowPlaying",
             ],
             path: "Tests/SillTests"
         ),

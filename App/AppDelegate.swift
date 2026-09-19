@@ -1,4 +1,5 @@
 import AppKit
+import FeatureNowPlaying
 import NotchCore
 import Services
 
@@ -14,6 +15,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.app.info("\(Branding.appName, privacy: .public) \(Branding.version, privacy: .public) launched")
 
         statusItem = StatusItemController(preferences: preferences, openSettings: {})
+
+        hub.register(NowPlayingModule(preferences: preferences))
 
         let manager = NotchWindowManager(hub: hub, preferences: preferences)
         manager.start()
