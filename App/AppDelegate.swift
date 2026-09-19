@@ -1,25 +1,35 @@
 import AppKit
 import Combine
-import FeatureNowPlaying
-import FeatureShelf
 import FeatureClipboard
+import FeatureNowPlaying
 import FeaturePower
+import FeatureShelf
 import NotchCore
 import Services
+import SettingsUI
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let preferences = Preferences.shared
     private let hub = NotchHub()
+    private let launchAtLogin = LaunchAtLogin()
+    private let permissions = PermissionService()
     private var manager: NotchWindowManager?
     private var statusItem: StatusItemController?
+    private var settings: SettingsWindowController?
+    private var onboarding: OnboardingWindowController?
     private var cancellables: Set<AnyCancellable> = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         CostSample.markLaunch()
         Log.app.info("\(Branding.appName, privacy: .public) \(Branding.version, privacy: .public) launched")
 
-        statusItem = StatusItemController(preferences: preferences, openSettings: {})
+        let settings = SettingsWindowController(
+            preferences: preferences, launchAtLogin: launchAtLogin, permissions: permissions
+        )
+        self.settings = settings
+        statusItem = StatusItemController(preferences: preferences) { settings.show() }
+        hub.openSettings = { settings.show() }
 
         hub.register(NowPlayingModule(preferences: preferences))
         hub.register(ShelfModule(preferences: preferences))
@@ -36,6 +46,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let manager = NotchWindowManager(hub: hub, preferences: preferences)
         manager.start()
         self.manager = manager
+
+        if !preferences.hasCompletedOnboarding {
+            let onboarding = OnboardingWindowController(preferences: preferences)
+            self.onboarding = onboarding
+            onboarding.show()
+        }
+    }
+
+    /// Opening the app again from Finder or Spotlight shows Settings — the expected escape hatch
+    /// for an app with no Dock icon.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        settings?.show()
+        return false
     }
 
     func applicationWillTerminate(_ notification: Notification) {
