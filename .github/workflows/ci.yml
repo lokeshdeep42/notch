@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+          swift --version
+
+      - name: Cache mediaremote-adapter
+        uses: actions/cache@v4
+        with:
+          path: Vendor/mediaremote-adapter
+          key: adapter-v0.7.7-${{ runner.os }}-${{ runner.arch }}
+
+      - name: Fetch adapter
+        id: adapter
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          Scripts/fetch-adapter.sh 2>&1 | tee adapter.log
+
+      - name: Build app
+        id: build
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          Scripts/build.sh 2>&1 | tee build.log
+
+      - name: Unit tests
+        id: test
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          Scripts/test.sh 2>&1 | tee test.log
+
+      - name: Annotate compiler errors
+        if: always()
+        run: |
+          grep -hE "(error|warning): " build.log test.log 2>/dev/null | sort -u | head -40 \
+            | while IFS= read -r line; do echo "::warning::$line"; done || true
+
+      - name: Publish logs to the ci-logs branch
+        if: always()
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/logs"
+          cp adapter.log build.log test.log "$RUNNER_TEMP/logs/" 2>/dev/null || true
+          {
+            echo "sha=$GITHUB_SHA"
+            echo "adapter=${{ steps.adapter.outcome }}"
+            echo "build=${{ steps.build.outcome }}"
+            echo "test=${{ steps.test.outcome }}"
+            echo "warnings=$(grep -hE 'warning: ' build.log test.log 2>/dev/null | grep -v '^ld: warning' | sort -u | wc -l | tr -d ' ')"
+          } > "$RUNNER_TEMP/logs/status.txt"
+          cd "$RUNNER_TEMP/logs"
+          git init -q
+          git checkout -q -b ci-logs
+          git config user.name "ci"
+          git config user.email "ci@users.noreply.github.com"
+          git add -A
+          git commit -q -m "CI logs for $GITHUB_SHA"
+          git push -q -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" ci-logs
+
+      - name: Zip app
+        if: steps.build.outcome == 'success'
+        run: |
+          cd build
+          ditto -c -k --keepParent Sill.app Sill.app.zip
+
+      - name: Upload app
+        if: steps.build.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sill-app
+          path: build/Sill.app.zip
+          retention-days: 30
+
+      - name: Fail if build or tests failed
+        if: steps.build.outcome != 'success' || steps.test.outcome != 'success'
+        run: exit 1
