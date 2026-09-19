@@ -3,6 +3,7 @@ import Combine
 import FeatureNowPlaying
 import FeatureShelf
 import FeatureClipboard
+import FeaturePower
 import NotchCore
 import Services
 
@@ -23,6 +24,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hub.register(NowPlayingModule(preferences: preferences))
         hub.register(ShelfModule(preferences: preferences))
         hub.register(ClipboardModule(preferences: preferences))
+        hub.register(PowerModule(preferences: preferences))
 
         // Module switches take effect immediately and fully unload what they turn off.
         preferences.objectWillChange

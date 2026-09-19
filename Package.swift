@@ -38,11 +38,17 @@ let package = Package(
             dependencies: ["NotchCore", "Services", "DesignSystem"],
             path: "Sources/Features/Clipboard"
         ),
+        .target(
+            name: "FeaturePower",
+            dependencies: ["NotchCore", "Services", "DesignSystem"],
+            path: "Sources/Features/Power",
+            linkerSettings: [.linkedFramework("IOKit")]
+        ),
         .executableTarget(
             name: "Sill",
             dependencies: [
                 "NotchCore", "Services", "DesignSystem",
-                "FeatureNowPlaying", "FeatureShelf", "FeatureClipboard",
+                "FeatureNowPlaying", "FeatureShelf", "FeatureClipboard", "FeaturePower",
             ],
             path: "App",
             exclude: ["Info.plist"]
