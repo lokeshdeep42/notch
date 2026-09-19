@@ -228,11 +228,18 @@ public final class NotchWindowManager {
         return CFUUIDCreateString(nil, uuid) as String?
     }
 
+    public struct ConnectedDisplay: Identifiable, Equatable {
+        public let uuid: String
+        public let name: String
+        public let isBuiltIn: Bool
+        public var id: String { uuid }
+    }
+
     /// Display name and UUID for every connected screen, for the settings UI.
-    public static func connectedDisplays() -> [(uuid: String, name: String, isBuiltIn: Bool)] {
+    public static func connectedDisplays() -> [ConnectedDisplay] {
         NSScreen.screens.compactMap { screen in
             guard let id = screen.displayID, let uuid = uuidString(for: id) else { return nil }
-            return (uuid, screen.localizedName, CGDisplayIsBuiltin(id) != 0)
+            return ConnectedDisplay(uuid: uuid, name: screen.localizedName, isBuiltIn: CGDisplayIsBuiltin(id) != 0)
         }
     }
 }

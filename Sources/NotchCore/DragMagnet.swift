@@ -44,6 +44,7 @@ public final class DragMagnet {
     }
 
     func stop() {
+        guard !monitors.isEmpty else { return }
         monitors.forEach(NSEvent.removeMonitor)
         monitors.removeAll()
         isDragging = false
