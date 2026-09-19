@@ -225,6 +225,11 @@ answers it. The adapter streams now-playing state as newline-delimited JSON on s
 - Reported working on macOS 15.4+ and macOS 26.x. **⚠ VERIFY** on your target versions.
 - **Check the licence before bundling** and record it in `docs/ADR.md`.
 
+Confirmed 2026-09-19: **BSD-3-Clause**, pinned to v0.7.7. Use `stream --micros --debounce=100`;
+lines are `{"type":"data","diff":bool,"payload":{…}}` — diffs merge into the last full payload and
+`null` removes a key. Commands: `send 2` (toggle), `send 4` (next), `send 5` (previous),
+`seek <microseconds>`.
+
 Implementation sketch:
 ```swift
 let proc = Process()
@@ -244,7 +249,11 @@ Requirements:
 ### Fallback chain
 1. Adapter stream (full fidelity, artwork, all apps).
 2. **ScriptingBridge / AppleScript** for Music and Spotify specifically — gives title, artist,
-   album, and play state but **no artwork** and requires polling. Needs Apple Events permission
+   album, and play state but **no artwork** and requires polling.
+   > **Corrected 2026-09-19:** Music and Spotify post distributed notifications
+   > (`com.apple.Music.playerInfo`, `com.spotify.client.PlaybackStateChanged`) carrying title, artist,
+   > album and state. Listening needs no permission and no polling; Apple Events are only used to
+   > *control* playback. See `Sources/Features/NowPlaying/DistributedMediaSource.swift` and docs/ADR.md. Needs Apple Events permission
    (`NSAppleEventsUsageDescription`), which prompts the user. Only attempt this if the adapter
    has failed and only for apps that are actually running.
 3. Honest empty state: "No media detected" with a link to a help page. Never an infinite spinner.
@@ -271,6 +280,11 @@ Critical behaviours:
   Drag-tracking is separate from mouse-hover tracking; register the window as a drag destination.
 
 ### Dragging files back out
+> **Changed 2026-09-19:** shelf items are already real files in our store, so the drag source
+> writes their `NSURL`s with a `.copy`-only operation mask instead of `NSFilePromiseProvider`
+> (browser upload fields and Slack accept URLs more reliably than promises). Incoming promises from
+> Photos/Mail are still received with `NSFilePromiseReceiver`. See docs/ADR.md.
+
 SwiftUI's `.draggable` cannot produce file promises. Wrap an `NSView` in `NSViewRepresentable` and
 implement a drag source with `NSFilePromiseProvider`:
 

@@ -55,6 +55,12 @@ Sill/
     ├── build.sh  test.sh  sign.sh  notarize.sh  release.sh  bench.sh
 ```
 
+> **As built (2026-09-19):** SwiftPM only — `Package.swift` + `Scripts/build.sh` instead of
+> XcodeGen; `App/SillMain.swift` (`@main`) instead of `SillApp.swift`; feature targets are
+> `FeatureNowPlaying`, `FeatureShelf`, `FeatureClipboard`, `FeaturePower`. Features plug into
+> `NotchCore` through the `NotchModule` protocol, so `NotchRootView` never names a feature.
+> See docs/ADR.md.
+
 **Dependency rule:** `Features/*` may import `NotchCore`, `Services`, `DesignSystem`. They may
 **not** import each other. `NotchCore` imports nothing but `Services` and `DesignSystem`.
 
@@ -121,6 +127,10 @@ Per-display user preference: `on built-in only` (default) / `all displays` / `ch
 | Frontmost app / fullscreen | `NSWorkspace.didActivateApplicationNotification` + a check on activation | No |
 | Battery & charging | `IOPSNotificationCreateRunLoopSource` (IOKit power-source callback) | No |
 | Now Playing | long-lived adapter process streaming newline-delimited JSON | No |
+| Fullscreen apps | `activeSpaceDidChange` + app activation → one `CGWindowListCopyWindowInfo` bounds check (no permission) | No |
+| Screen lock | `com.apple.screenIsLocked` / `screenIsUnlocked` distributed notifications | No |
+| File drag approaching the notch | Global `leftMouseDown/Dragged/Up` monitors — silent unless a mouse button is held | No |
+| Music/Spotify fallback | Distributed notifications | No |
 | Clipboard | **`NSPasteboard.changeCount` polling — the one unavoidable poll** | Yes, gated |
 
 ### The clipboard exception

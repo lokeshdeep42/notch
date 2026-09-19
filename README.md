@@ -1,53 +1,76 @@
-# Sill — spec pack
+# Sill
 
-A macOS menu-bar utility that turns the MacBook notch into an interactive hub: now-playing
-controls, a drag-and-drop file shelf, and clipboard history — that costs essentially nothing when
-idle and does not break on external displays.
+**The notch app that disappears.** A macOS menu-bar utility that turns the MacBook notch into a
+small hub — now playing, a file shelf, clipboard history, battery — and costs essentially nothing
+when you're not using it. It also shows you that cost, live, in its own panel.
 
-## How to use this pack
+> "Sill" is a working name. See [Naming](#naming).
 
-Drop these files at the root of a new git repo:
+![CI](https://github.com/lokeshdeep42/notch/actions/workflows/ci.yml/badge.svg)
+
+## Status
+
+All v1 features except licensing are implemented. Everything compiles with **zero warnings** and
+passes its unit tests on GitHub's macOS 15 runners, but **nothing has run on real hardware yet**.
+The next step is [`docs/VERIFY-ON-MAC.md`](docs/VERIFY-ON-MAC.md).
+
+## What makes it different
+
+| | |
+|---|---|
+| **Intent-aware hover** | Opens when your pointer *settles* in the notch, not just after a timer. Throw the pointer at the menu bar and it stays shut. |
+| **Live cost receipt** | The panel footer shows Sill's own CPU, wakeups and memory since launch, read from the kernel. |
+| **Magnetic drop zone** | Drag a file toward the top of the screen and the notch leans toward it, then opens into the shelf. |
+| **Physical motion** | One shape morphs out of the hardware notch on interruptible springs; content settles in behind it. Reduce Motion gets a cross-fade. |
+| **Honest idle** | No repeating timers while collapsed. The only poll (clipboard) is opt-in and stops when your Mac sleeps or locks. |
+| **Multi-display** | One panel per display, rebuilt on every plug, unplug, resolution change and wake. A pill on displays without a notch. |
+| **Minimum permissions** | None to run. Automation is asked for only if you use playback controls without the Now Playing helper — and it's explained first. |
+
+## Build and run
+
+Requires macOS 14+, Xcode 15+ (or Command Line Tools), and `cmake` for the Now Playing helper.
+
+```bash
+Scripts/fetch-adapter.sh   # builds ungive/mediaremote-adapter v0.7.7 (BSD-3) into Vendor/
+Scripts/build.sh           # → build/Sill.app (ad-hoc signed)
+Scripts/test.sh            # unit tests
+Scripts/run.sh             # debug build + launch
+Scripts/bench.sh 120       # idle CPU / wakeups / RSS for Sill and its helper
+```
+
+Every push to `main` runs the same steps on CI and uploads a ready-to-run `Sill.app` artifact.
+
+## Layout
 
 ```
-your-repo/
-├── CLAUDE.md
-├── README.md
-└── docs/
-    ├── 00-PRODUCT-SPEC.md
-    ├── 01-ARCHITECTURE.md
-    ├── 02-TECHNICAL-REFERENCE.md
-    ├── 03-BUILD-PLAN.md
-    ├── 04-QA-CHECKLIST.md
-    ├── 05-RELEASE.md
-    └── ADR.md
+App/                       entry point, app delegate, status item, Info.plist
+Sources/DesignSystem/      springs, palette, type, metrics
+Sources/Services/          preferences, logging, branding, cost receipt, launch at login, permissions
+Sources/NotchCore/         state machine, hover intent, geometry, panel, window manager, drag magnet
+Sources/Features/*/        NowPlaying · Shelf · Clipboard · Power — never import each other
+Sources/SettingsUI/        settings window and onboarding
+Tests/SillTests/           unit tests for every piece of pure logic
+docs/                      spec, architecture, technical reference, build plan, QA, release, ADR
 ```
 
-Then open Claude Code in that directory. It reads `CLAUDE.md` automatically.
+Start with [`CLAUDE.md`](CLAUDE.md), then [`docs/00-PRODUCT-SPEC.md`](docs/00-PRODUCT-SPEC.md) and
+[`docs/01-ARCHITECTURE.md`](docs/01-ARCHITECTURE.md). Decisions and deviations from the original
+spec are in [`docs/ADR.md`](docs/ADR.md).
 
-## Kickoff prompt
+## Naming
 
-Paste this as your first message to Claude Code:
+"Sill" is a placeholder, kept in one place: `Sources/Services/Branding.swift` (plus the bundle id in
+`App/Info.plist`). Candidates before a trademark check:
 
-> Read CLAUDE.md, then docs/00-PRODUCT-SPEC.md, docs/01-ARCHITECTURE.md and
-> docs/02-TECHNICAL-REFERENCE.md. Then read Milestone 0 in docs/03-BUILD-PLAN.md.
->
-> Before writing code, tell me: (1) your understanding of the product thesis in one sentence,
-> (2) anything in the specs you think is wrong, risky, or underspecified, and (3) your plan for
-> M0-T1 through M0-T8.
->
-> Do not start coding until I confirm. Then work through Milestone 0 one task at a time, stopping
-> after each for me to verify the acceptance criteria on real hardware.
+- **Lintel**: the beam across the top of a window opening. The notch is the top of your screen, and
+  it pairs with "Sill".
+- **Hush**: quiet, costs nothing, disappears.
+- **Eave**: architectural, hangs over the top edge.
 
-## Read this before you start
+Never "Dynamic Island" (Apple's trademark), and avoid "Notch-" prefixes.
 
-- **Milestone 0 is the whole weekend's real value.** It answers whether the hard part —
-  a borderless panel over the notch that survives Spaces, fullscreen, sleep/wake and display
-  changes at near-zero idle cost — is achievable. Everything else is ordinary app work.
-- **The specs are research-derived, not build-verified.** Items marked **⚠ VERIFY** in
-  `docs/02-TECHNICAL-REFERENCE.md` need a five-line probe on real hardware before you build on
-  them. When reality disagrees with the doc, update the doc in the same commit.
-- **Licences matter here.** `boring.notch` and `mew-notch` are GPL. You can read them for
-  behaviour; you cannot copy code into a paid closed-source app. `DynamicNotchKit`, `NotchDrop`
-  and `Notchmeister` are MIT/BSD and safe.
-- **"Sill" is a placeholder name.** Trademark-check before any public release, and never use
-  "Dynamic Island" — it is Apple's mark.
+## Licences
+
+Closed source. Bundles [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter)
+(BSD-3-Clause, credited in About). No GPL code; `boring.notch` and `mew-notch` were read for
+behaviour only.
