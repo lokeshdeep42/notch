@@ -108,14 +108,19 @@ final class PassthroughView: NSView {
 
     // MARK: Dragging destination
 
+    /// Drags that start in our own panel (a shelf item on its way out) must never drop back in.
+    private func accepts(_ sender: NSDraggingInfo) -> Bool {
+        acceptsDrops && sender.draggingSource == nil
+    }
+
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
-        guard acceptsDrops else { return [] }
+        guard accepts(sender) else { return [] }
         delegate?.fileDragEntered()
         return .copy
     }
 
     override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
-        acceptsDrops ? .copy : []
+        accepts(sender) ? .copy : []
     }
 
     override func draggingExited(_ sender: NSDraggingInfo?) {
@@ -123,10 +128,11 @@ final class PassthroughView: NSView {
     }
 
     override func prepareForDragOperation(_ sender: NSDraggingInfo) -> Bool {
-        acceptsDrops
+        accepts(sender)
     }
 
     override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
-        delegate?.performDrop(sender.draggingPasteboard) ?? false
+        guard accepts(sender) else { return false }
+        return delegate?.performDrop(sender.draggingPasteboard) ?? false
     }
 }

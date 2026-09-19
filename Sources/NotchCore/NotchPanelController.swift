@@ -23,6 +23,8 @@ final class NotchPanelController: PassthroughViewDelegate {
     private var intent = HoverIntent()
     /// The single pending one-shot timer (enter delay, exit delay or peek end).
     private var timerTask: Task<Void, Never>?
+    /// Only exists while a file drag is holding the panel open; see `watchForDragRelease`.
+    private var dragWatchTask: Task<Void, Never>?
 
     /// Magnet pull radius around the notch, in points.
     private static let magnetRadius: CGFloat = 150
@@ -71,6 +73,8 @@ final class NotchPanelController: PassthroughViewDelegate {
     func tearDown() {
         timerTask?.cancel()
         timerTask = nil
+        dragWatchTask?.cancel()
+        dragWatchTask = nil
         container.removeAllTracking()
         container.delegate = nil
         panel.orderOut(nil)
@@ -233,17 +237,39 @@ final class NotchPanelController: PassthroughViewDelegate {
         if strength >= Self.magnetSnap {
             hub.selectDropModule()
             send(.dragApproached)
+            watchForDragRelease()
             return
         }
         let lean = max(-14, min(14, (point.x - target.midX) * 0.06)) * strength
         model.magnetStrength = strength
         model.magnetLean = lean
+        if strength > 0 { watchForDragRelease() }
     }
 
     func handleDragEnded() {
+        dragWatchTask?.cancel()
+        dragWatchTask = nil
         releaseMagnet()
         send(.dragEnded)
         syncPointerInside()
+    }
+
+    /// Safety net for a drag that opened the panel and then ended somewhere our monitors can't see
+    /// (e.g. dropped into another app's window). Checks the mouse button four times a second — only
+    /// while such a drag is in flight, never while idle — so the panel can't get stuck open.
+    private func watchForDragRelease() {
+        guard machine.isDragging || model.magnetStrength > 0, dragWatchTask == nil else { return }
+        dragWatchTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 250_000_000)
+                guard !Task.isCancelled else { return }
+                if NSEvent.pressedMouseButtons & 1 == 0 {
+                    self?.dragWatchTask = nil
+                    self?.handleDragEnded()
+                    return
+                }
+            }
+        }
     }
 
     private func releaseMagnet() {
@@ -288,9 +314,12 @@ final class NotchPanelController: PassthroughViewDelegate {
 
     func fileDragExited() {
         model.isDropTargeted = false
+        watchForDragRelease()
     }
 
     func performDrop(_ pasteboard: NSPasteboard) -> Bool {
+        dragWatchTask?.cancel()
+        dragWatchTask = nil
         model.isDropTargeted = false
         let handled = hub.handleDrop(pasteboard)
         releaseMagnet()

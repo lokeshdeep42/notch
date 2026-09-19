@@ -4,9 +4,10 @@ import Services
 /// Notices a file being dragged toward the top of the screen so the notch can lean toward it and
 /// open into the shelf before the pointer even arrives.
 ///
-/// Cost model: global monitors for `leftMouseDown`, `leftMouseDragged` and `leftMouseUp`. These need
-/// no permission (only keyboard monitors do) and deliver **nothing** while the mouse is idle or
-/// merely moving; they fire only during a click or a drag. Whether a drag carries files is decided
+/// Cost model: global monitors for `leftMouseDown`, `leftMouseDragged` and `leftMouseUp`, plus a
+/// local `leftMouseDown` monitor for clicks inside our own panel. These need no permission (only
+/// keyboard monitors do) and deliver **nothing** while the mouse is idle or merely moving; they
+/// fire only during a click or a drag. Whether a drag carries files is decided
 /// once per drag from the drag pasteboard's `changeCount`, not per event.
 @MainActor
 public final class DragMagnet {
@@ -39,7 +40,13 @@ public final class DragMagnet {
         let up = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseUp) { [weak self] _ in
             MainActor.assumeIsolated { self?.mouseUp() }
         }
-        monitors = [down, dragged, up].compactMap { $0 }
+        // Our own clicks never reach global monitors; without this, a click inside the open panel
+        // after any earlier file drag would look like a drag and be swallowed.
+        let localDown = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
+            MainActor.assumeIsolated { self?.mouseDown() }
+            return event
+        }
+        monitors = [down, dragged, up, localDown].compactMap { $0 }
         Log.notch.debug("DragMagnet started")
     }
 

@@ -38,6 +38,18 @@ public final class ClipboardModule: NotchModule {
                 Task { @MainActor in self?.model.sync() }
             }
             .store(in: &cancellables)
+        // Turning capture on from the panel: re-select the tab so the panel takes keyboard focus
+        // for the search field straight away.
+        preferences.$clipboardEnabled
+            .dropFirst()
+            .filter { $0 }
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    guard let self else { return }
+                    self.host?.select(moduleID: self.id)
+                }
+            }
+            .store(in: &cancellables)
     }
 
     public func deactivate() {
