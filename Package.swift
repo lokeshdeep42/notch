@@ -27,11 +27,17 @@ let package = Package(
             dependencies: ["NotchCore", "Services", "DesignSystem"],
             path: "Sources/Features/NowPlaying"
         ),
+        .target(
+            name: "FeatureShelf",
+            dependencies: ["NotchCore", "Services", "DesignSystem"],
+            path: "Sources/Features/Shelf",
+            linkerSettings: [.linkedFramework("QuickLookThumbnailing")]
+        ),
         .executableTarget(
             name: "Sill",
             dependencies: [
                 "NotchCore", "Services", "DesignSystem",
-                "FeatureNowPlaying",
+                "FeatureNowPlaying", "FeatureShelf",
             ],
             path: "App",
             exclude: ["Info.plist"]
@@ -40,7 +46,7 @@ let package = Package(
             name: "SillTests",
             dependencies: [
                 "NotchCore", "Services", "DesignSystem",
-                "FeatureNowPlaying",
+                "FeatureNowPlaying", "FeatureShelf",
             ],
             path: "Tests/SillTests"
         ),

@@ -1,5 +1,7 @@
 import AppKit
+import Combine
 import FeatureNowPlaying
+import FeatureShelf
 import NotchCore
 import Services
 
@@ -9,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let hub = NotchHub()
     private var manager: NotchWindowManager?
     private var statusItem: StatusItemController?
+    private var cancellables: Set<AnyCancellable> = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         CostSample.markLaunch()
@@ -17,6 +20,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = StatusItemController(preferences: preferences, openSettings: {})
 
         hub.register(NowPlayingModule(preferences: preferences))
+        hub.register(ShelfModule(preferences: preferences))
+
+        // Module switches take effect immediately and fully unload what they turn off.
+        preferences.objectWillChange
+            .sink { [weak self] _ in
+                Task { @MainActor in self?.hub.refreshModules() }
+            }
+            .store(in: &cancellables)
 
         let manager = NotchWindowManager(hub: hub, preferences: preferences)
         manager.start()
