@@ -33,11 +33,16 @@ let package = Package(
             path: "Sources/Features/Shelf",
             linkerSettings: [.linkedFramework("QuickLookThumbnailing")]
         ),
+        .target(
+            name: "FeatureClipboard",
+            dependencies: ["NotchCore", "Services", "DesignSystem"],
+            path: "Sources/Features/Clipboard"
+        ),
         .executableTarget(
             name: "Sill",
             dependencies: [
                 "NotchCore", "Services", "DesignSystem",
-                "FeatureNowPlaying", "FeatureShelf",
+                "FeatureNowPlaying", "FeatureShelf", "FeatureClipboard",
             ],
             path: "App",
             exclude: ["Info.plist"]
@@ -46,7 +51,7 @@ let package = Package(
             name: "SillTests",
             dependencies: [
                 "NotchCore", "Services", "DesignSystem",
-                "FeatureNowPlaying", "FeatureShelf",
+                "FeatureNowPlaying", "FeatureShelf", "FeatureClipboard",
             ],
             path: "Tests/SillTests"
         ),
