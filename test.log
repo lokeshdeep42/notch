@@ -1,0 +1,324 @@
+Building for debugging...
+[0/19] Write sources
+[1/19] /Users/runner/work/notch/notch/.build/arm64-apple-macosx/debug/SillPackageTests.derived/runner.swift
+[3/19] Write Sill-entitlement.plist
+[4/19] Write sources
+[13/19] Write swift-version--79AA4F9932D1E87A.txt
+[15/28] Compiling Services Branding.swift
+[16/28] Compiling Services CostReceipt.swift
+[17/28] Emitting module Services
+[18/30] Compiling Services LaunchAtLogin.swift
+[19/30] Compiling Services Log.swift
+[20/30] Compiling Services PermissionService.swift
+[21/30] Compiling Services Preferences.swift
+[22/30] Compiling DesignSystem Palette.swift
+[23/31] Emitting module DesignSystem
+[26/31] Compiling DesignSystem PressableButtonStyle.swift
+[27/43] Emitting module NotchCore
+[28/43] Compiling NotchCore NotchModule.swift
+[29/43] Compiling NotchCore NotchPanel.swift
+[30/43] Compiling NotchCore NotchPanelController.swift
+[31/43] Compiling NotchCore NotchRootView.swift
+[32/43] Compiling NotchCore NotchShape.swift
+[33/43] Compiling NotchCore DebugOverlay.swift
+[34/43] Compiling NotchCore DisplayEligibility.swift
+[35/43] Compiling NotchCore DragMagnet.swift
+[36/43] Compiling NotchCore FullscreenDetector.swift
+[37/43] Compiling NotchCore HoverIntent.swift
+[38/43] Compiling NotchCore NotchHub.swift
+[39/48] Compiling NotchCore NotchState.swift
+[40/48] Compiling NotchCore NotchWindowManager.swift
+[41/48] Compiling NotchCore PanelModel.swift
+[42/48] Compiling NotchCore PassthroughView.swift
+[43/48] Compiling NotchCore ScreenGeometry.swift
+[44/62] Emitting module FeaturePower
+[45/63] Compiling FeaturePower PowerModule.swift
+[46/63] Compiling FeaturePower PowerMonitor.swift
+[47/63] Compiling FeaturePower PowerViews.swift
+[48/63] Compiling SettingsUI OnboardingView.swift
+[49/63] Compiling SettingsUI OnboardingWindowController.swift
+[50/63] Compiling FeatureShelf ShelfItemInteractionView.swift
+[51/63] Emitting module FeatureShelf
+[52/63] Compiling FeatureShelf ShelfModel.swift
+[53/63] Compiling FeatureShelf ShelfModule.swift
+[54/63] Compiling FeatureShelf ShelfStore.swift
+[55/72] Emitting module SettingsUI
+[56/72] Compiling FeatureNowPlaying AdapterProcess.swift
+[57/72] Compiling FeatureNowPlaying ArtworkProcessor.swift
+[58/72] Compiling SettingsUI SettingsView.swift
+[59/73] Compiling FeatureNowPlaying NowPlayingDecoder.swift
+[60/73] Compiling FeatureNowPlaying NowPlayingInfo.swift
+[61/73] Compiling FeatureNowPlaying NowPlayingModule.swift
+[62/75] Compiling SettingsUI SettingsWindowController.swift
+[63/81] Emitting module FeatureNowPlaying
+[64/81] Compiling FeatureClipboard ClipboardModule.swift
+[65/81] Compiling FeatureClipboard ClipboardMonitor.swift
+[66/81] Compiling FeatureClipboard ClipEntry.swift
+[67/81] Emitting module FeatureClipboard
+[71/83] Compiling FeatureClipboard ClipboardFilter.swift
+[72/83] Compiling FeatureClipboard ClipboardModel.swift
+[73/83] Compiling FeatureClipboard ClipboardViews.swift
+[74/83] Compiling FeatureNowPlaying NowPlayingViews.swift
+[77/83] Compiling FeatureClipboard ClipboardStore.swift
+[79/93] Compiling Sill SillMain.swift
+[80/94] Emitting module Sill
+[81/94] Compiling Sill AppDelegate.swift
+[82/94] Compiling Sill StatusItemController.swift
+[82/94] Write Objects.LinkFileList
+[83/94] Linking Sill
+[84/94] Applying Sill
+[86/94] Emitting module SillTests
+[87/94] Compiling SillTests FullscreenDetectorTests.swift
+[88/94] Compiling SillTests HoverIntentTests.swift
+[89/94] Compiling SillTests NotchStateTests.swift
+[90/94] Compiling SillTests ClipboardTests.swift
+[91/94] Compiling SillTests CostReceiptTests.swift
+[92/94] Compiling SillTests DisplayMatrixTests.swift
+[93/97] Compiling SillTests NowPlayingDecoderTests.swift
+[94/97] Compiling SillTests ScreenGeometryTests.swift
+[95/97] Compiling SillTests ShelfStoreTests.swift
+[96/99] Emitting module SillPackageTests
+[97/99] Compiling SillPackageTests runner.swift
+[97/99] Write Objects.LinkFileList
+[98/99] Linking SillPackageTests
+Build complete! (31.12s)
+Test Suite 'All tests' started at 2026-09-20 10:09:34.776.
+Test Suite 'SillPackageTests.xctest' started at 2026-09-20 10:09:34.777.
+Test Suite 'ClipboardFilterTests' started at 2026-09-20 10:09:34.777.
+Test Case '-[SillTests.ClipboardFilterTests testBlocklistedSourceIsRejected]' started.
+Test Case '-[SillTests.ClipboardFilterTests testBlocklistedSourceIsRejected]' passed (0.003 seconds).
+Test Case '-[SillTests.ClipboardFilterTests testConcealedTypeIsRejected]' started.
+Test Case '-[SillTests.ClipboardFilterTests testConcealedTypeIsRejected]' passed (0.000 seconds).
+Test Case '-[SillTests.ClipboardFilterTests testEmptyPasteboardIsRejected]' started.
+Test Case '-[SillTests.ClipboardFilterTests testEmptyPasteboardIsRejected]' passed (0.000 seconds).
+Test Case '-[SillTests.ClipboardFilterTests testOrdinaryTextIsCaptured]' started.
+Test Case '-[SillTests.ClipboardFilterTests testOrdinaryTextIsCaptured]' passed (0.000 seconds).
+Test Case '-[SillTests.ClipboardFilterTests testTransientAndAutoGeneratedAreRejected]' started.
+Test Case '-[SillTests.ClipboardFilterTests testTransientAndAutoGeneratedAreRejected]' passed (0.000 seconds).
+Test Suite 'ClipboardFilterTests' passed at 2026-09-20 10:09:34.781.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
+Test Suite 'ClipboardStoreTests' started at 2026-09-20 10:09:34.781.
+Test Case '-[SillTests.ClipboardStoreTests testCapByBytesDropsOldest]' started.
+Test Case '-[SillTests.ClipboardStoreTests testCapByBytesDropsOldest]' passed (0.007 seconds).
+Test Case '-[SillTests.ClipboardStoreTests testCapByCountDropsOldest]' started.
+Test Case '-[SillTests.ClipboardStoreTests testCapByCountDropsOldest]' passed (0.004 seconds).
+Test Case '-[SillTests.ClipboardStoreTests testDirectoryIsPrivateAndExcludedFromSpotlight]' started.
+Test Case '-[SillTests.ClipboardStoreTests testDirectoryIsPrivateAndExcludedFromSpotlight]' passed (0.003 seconds).
+Test Case '-[SillTests.ClipboardStoreTests testHistorySurvivesReload]' started.
+Test Case '-[SillTests.ClipboardStoreTests testHistorySurvivesReload]' passed (0.005 seconds).
+Test Case '-[SillTests.ClipboardStoreTests testImageBlobIsStoredAndDeleted]' started.
+Test Case '-[SillTests.ClipboardStoreTests testImageBlobIsStoredAndDeleted]' passed (0.006 seconds).
+Test Case '-[SillTests.ClipboardStoreTests testRepeatedCopyMovesToTopInsteadOfDuplicating]' started.
+Test Case '-[SillTests.ClipboardStoreTests testRepeatedCopyMovesToTopInsteadOfDuplicating]' passed (0.006 seconds).
+Test Case '-[SillTests.ClipboardStoreTests testSearchMatchesPreviewAndSource]' started.
+Test Case '-[SillTests.ClipboardStoreTests testSearchMatchesPreviewAndSource]' passed (0.000 seconds).
+Test Suite 'ClipboardStoreTests' passed at 2026-09-20 10:09:34.814.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.032 (0.033) seconds
+Test Suite 'CostReceiptTests' started at 2026-09-20 10:09:34.814.
+Test Case '-[SillTests.CostReceiptTests testAveragesOverUptime]' started.
+Test Case '-[SillTests.CostReceiptTests testAveragesOverUptime]' passed (0.000 seconds).
+Test Case '-[SillTests.CostReceiptTests testFormattingUsesOneDecimalAboveOnePercent]' started.
+Test Case '-[SillTests.CostReceiptTests testFormattingUsesOneDecimalAboveOnePercent]' passed (0.000 seconds).
+Test Case '-[SillTests.CostReceiptTests testFormattingUsesThreeDecimalsBelowOnePercent]' started.
+Test Case '-[SillTests.CostReceiptTests testFormattingUsesThreeDecimalsBelowOnePercent]' passed (0.000 seconds).
+Test Case '-[SillTests.CostReceiptTests testLiveSampleIsReadable]' started.
+Test Case '-[SillTests.CostReceiptTests testLiveSampleIsReadable]' passed (0.002 seconds).
+Test Case '-[SillTests.CostReceiptTests testZeroUptimeDoesNotDivideByZero]' started.
+Test Case '-[SillTests.CostReceiptTests testZeroUptimeDoesNotDivideByZero]' passed (0.000 seconds).
+Test Suite 'CostReceiptTests' passed at 2026-09-20 10:09:34.817.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'DisplayMatrixTests' started at 2026-09-20 10:09:34.817.
+Test Case '-[SillTests.DisplayMatrixTests testAllModeReturnsEveryDisplayInScreenOrder]' started.
+Test Case '-[SillTests.DisplayMatrixTests testAllModeReturnsEveryDisplayInScreenOrder]' passed (0.000 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testBuiltInOnlyFallsBackToTheMenuBarDisplayInClamshell]' started.
+Test Case '-[SillTests.DisplayMatrixTests testBuiltInOnlyFallsBackToTheMenuBarDisplayInClamshell]' passed (0.000 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testBuiltInOnlyPicksTheBuiltInDisplay]' started.
+Test Case '-[SillTests.DisplayMatrixTests testBuiltInOnlyPicksTheBuiltInDisplay]' passed (0.000 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testCandidatesWithoutAUUIDAreNeverMatchedInChosenMode]' started.
+Test Case '-[SillTests.DisplayMatrixTests testCandidatesWithoutAUUIDAreNeverMatchedInChosenMode]' passed (0.000 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testChosenModeFallsBackWhenEveryChosenDisplayIsUnplugged]' started.
+Test Case '-[SillTests.DisplayMatrixTests testChosenModeFallsBackWhenEveryChosenDisplayIsUnplugged]' passed (0.000 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testChosenModeMatchesOnUUIDNotDisplayID]' started.
+Test Case '-[SillTests.DisplayMatrixTests testChosenModeMatchesOnUUIDNotDisplayID]' passed (0.000 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testClamshellLeavesOnlyTheExternalDisplayWithAPill]' started.
+Test Case '-[SillTests.DisplayMatrixTests testClamshellLeavesOnlyTheExternalDisplayWithAPill]' passed (0.000 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testEligibilityIsIdempotentAcrossRepeatedReconciles]' started.
+Test Case '-[SillTests.DisplayMatrixTests testEligibilityIsIdempotentAcrossRepeatedReconciles]' passed (0.000 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testExternalDisplayStackedAboveTheBuiltIn]' started.
+Test Case '-[SillTests.DisplayMatrixTests testExternalDisplayStackedAboveTheBuiltIn]' passed (0.000 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testExternalDisplayToTheLeftWithANegativeOrigin]' started.
+Test Case '-[SillTests.DisplayMatrixTests testExternalDisplayToTheLeftWithANegativeOrigin]' passed (0.000 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testMixedHiDPIAndNonHiDPISideBySide]' started.
+Test Case '-[SillTests.DisplayMatrixTests testMixedHiDPIAndNonHiDPISideBySide]' passed (0.000 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testNoDisplaysYieldsNoPanels]' started.
+Test Case '-[SillTests.DisplayMatrixTests testNoDisplaysYieldsNoPanels]' passed (0.000 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testNotchedDisplaysMeasureTheCutoutRatherThanTheMenuBar]' started.
+Test Case '-[SillTests.DisplayMatrixTests testNotchedDisplaysMeasureTheCutoutRatherThanTheMenuBar]' passed (0.000 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testNotchlessDisplaysIgnoreTheUsersPillWidthOnlyWhenItIsOutOfRange]' started.
+Test Case '-[SillTests.DisplayMatrixTests testNotchlessDisplaysIgnoreTheUsersPillWidthOnlyWhenItIsOutOfRange]' passed (0.000 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testPanelIsWellFormedOnEveryDisplayInTheMatrix]' started.
+Test Case '-[SillTests.DisplayMatrixTests testPanelIsWellFormedOnEveryDisplayInTheMatrix]' passed (0.001 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testRescalingADisplayChangesGeometrySoThePanelIsRebuilt]' started.
+Test Case '-[SillTests.DisplayMatrixTests testRescalingADisplayChangesGeometrySoThePanelIsRebuilt]' passed (0.000 seconds).
+Test Case '-[SillTests.DisplayMatrixTests testTwoExternalsEitherSideOfTheBuiltIn]' started.
+Test Case '-[SillTests.DisplayMatrixTests testTwoExternalsEitherSideOfTheBuiltIn]' passed (0.000 seconds).
+Test Suite 'DisplayMatrixTests' passed at 2026-09-20 10:09:34.822.
+	 Executed 17 tests, with 0 failures (0 unexpected) in 0.004 (0.005) seconds
+Test Suite 'FullscreenDetectorTests' started at 2026-09-20 10:09:34.822.
+Test Case '-[SillTests.FullscreenDetectorTests testSecondaryDisplayWithNegativeOrigin]' started.
+Test Case '-[SillTests.FullscreenDetectorTests testSecondaryDisplayWithNegativeOrigin]' passed (0.000 seconds).
+Test Case '-[SillTests.FullscreenDetectorTests testWindowCoveringWholeDisplayIsFullscreen]' started.
+Test Case '-[SillTests.FullscreenDetectorTests testWindowCoveringWholeDisplayIsFullscreen]' passed (0.000 seconds).
+Test Case '-[SillTests.FullscreenDetectorTests testWindowOnAnotherDisplayIsNot]' started.
+Test Case '-[SillTests.FullscreenDetectorTests testWindowOnAnotherDisplayIsNot]' passed (0.000 seconds).
+Test Case '-[SillTests.FullscreenDetectorTests testZoomedWindowBelowMenuBarIsNot]' started.
+Test Case '-[SillTests.FullscreenDetectorTests testZoomedWindowBelowMenuBarIsNot]' passed (0.000 seconds).
+Test Suite 'FullscreenDetectorTests' passed at 2026-09-20 10:09:34.823.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'HoverIntentTests' started at 2026-09-20 10:09:34.823.
+Test Case '-[SillTests.HoverIntentTests testFastDownwardIsNotAThrow]' started.
+Test Case '-[SillTests.HoverIntentTests testFastDownwardIsNotAThrow]' passed (0.000 seconds).
+Test Case '-[SillTests.HoverIntentTests testFastSidewaysIsUndecided]' started.
+Test Case '-[SillTests.HoverIntentTests testFastSidewaysIsUndecided]' passed (0.000 seconds).
+Test Case '-[SillTests.HoverIntentTests testFastUpwardThrowRestarts]' started.
+Test Case '-[SillTests.HoverIntentTests testFastUpwardThrowRestarts]' passed (0.000 seconds).
+Test Case '-[SillTests.HoverIntentTests testOldSamplesFallOutOfWindow]' started.
+Test Case '-[SillTests.HoverIntentTests testOldSamplesFallOutOfWindow]' passed (0.000 seconds).
+Test Case '-[SillTests.HoverIntentTests testResetClearsHistory]' started.
+Test Case '-[SillTests.HoverIntentTests testResetClearsHistory]' passed (0.000 seconds).
+Test Case '-[SillTests.HoverIntentTests testSingleSampleIsUndecided]' started.
+Test Case '-[SillTests.HoverIntentTests testSingleSampleIsUndecided]' passed (0.000 seconds).
+Test Case '-[SillTests.HoverIntentTests testSlowButTooBriefIsUndecided]' started.
+Test Case '-[SillTests.HoverIntentTests testSlowButTooBriefIsUndecided]' passed (0.000 seconds).
+Test Case '-[SillTests.HoverIntentTests testSlowDriftAfterObservationConfirms]' started.
+Test Case '-[SillTests.HoverIntentTests testSlowDriftAfterObservationConfirms]' passed (0.000 seconds).
+Test Suite 'HoverIntentTests' passed at 2026-09-20 10:09:34.824.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'NotchStateTests' started at 2026-09-20 10:09:34.825.
+Test Case '-[SillTests.NotchStateTests testClickOpensImmediately]' started.
+Test Case '-[SillTests.NotchStateTests testClickOpensImmediately]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testClosedPeekSchedulesPeekEnd]' started.
+Test Case '-[SillTests.NotchStateTests testClosedPeekSchedulesPeekEnd]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testClosedPointerEnteredGoesPendingAndSchedulesEnter]' started.
+Test Case '-[SillTests.NotchStateTests testClosedPointerEnteredGoesPendingAndSchedulesEnter]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testClosingExitDelayCloses]' started.
+Test Case '-[SillTests.NotchStateTests testClosingExitDelayCloses]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testClosingReenterReopens]' started.
+Test Case '-[SillTests.NotchStateTests testClosingReenterReopens]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testCollapseRequestedClosesFromOpen]' started.
+Test Case '-[SillTests.NotchStateTests testCollapseRequestedClosesFromOpen]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testDragApproachOpensFromClosed]' started.
+Test Case '-[SillTests.NotchStateTests testDragApproachOpensFromClosed]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testDragEndedInsideStaysOpen]' started.
+Test Case '-[SillTests.NotchStateTests testDragEndedInsideStaysOpen]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testDragEndedOutsideStartsClosing]' started.
+Test Case '-[SillTests.NotchStateTests testDragEndedOutsideStartsClosing]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testDragEndedWithoutDragIsNoOp]' started.
+Test Case '-[SillTests.NotchStateTests testDragEndedWithoutDragIsNoOp]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testDragHoldsPanelOpenWhenPointerLeaves]' started.
+Test Case '-[SillTests.NotchStateTests testDragHoldsPanelOpenWhenPointerLeaves]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testIsExpanded]' started.
+Test Case '-[SillTests.NotchStateTests testIsExpanded]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testOpenPointerExitedStartsClosing]' started.
+Test Case '-[SillTests.NotchStateTests testOpenPointerExitedStartsClosing]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testPeekElapsedCloses]' started.
+Test Case '-[SillTests.NotchStateTests testPeekElapsedCloses]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testPeekElapsedWithPointerInsideGoesPending]' started.
+Test Case '-[SillTests.NotchStateTests testPeekElapsedWithPointerInsideGoesPending]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testPeekNeverInterruptsOpen]' started.
+Test Case '-[SillTests.NotchStateTests testPeekNeverInterruptsOpen]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testPeekPointerEnteredGoesPending]' started.
+Test Case '-[SillTests.NotchStateTests testPeekPointerEnteredGoesPending]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testPendingEnterDelayOpens]' started.
+Test Case '-[SillTests.NotchStateTests testPendingEnterDelayOpens]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testPendingIntentConfirmedOpensEarly]' started.
+Test Case '-[SillTests.NotchStateTests testPendingIntentConfirmedOpensEarly]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testPendingIntentRestartRestartsDelay]' started.
+Test Case '-[SillTests.NotchStateTests testPendingIntentRestartRestartsDelay]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testPendingPointerExitedCloses]' started.
+Test Case '-[SillTests.NotchStateTests testPendingPointerExitedCloses]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testPointerStateTrackedWhileSuppressed]' started.
+Test Case '-[SillTests.NotchStateTests testPointerStateTrackedWhileSuppressed]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testStaleTimersAreNoOps]' started.
+Test Case '-[SillTests.NotchStateTests testStaleTimersAreNoOps]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testSuppressedIgnoresEverythingButUnsuppress]' started.
+Test Case '-[SillTests.NotchStateTests testSuppressedIgnoresEverythingButUnsuppress]' passed (0.000 seconds).
+Test Case '-[SillTests.NotchStateTests testSuppressFromEveryPhase]' started.
+Test Case '-[SillTests.NotchStateTests testSuppressFromEveryPhase]' passed (0.000 seconds).
+Test Suite 'NotchStateTests' passed at 2026-09-20 10:09:34.828.
+	 Executed 25 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds
+Test Suite 'NowPlayingDecoderTests' started at 2026-09-20 10:09:34.828.
+Test Case '-[SillTests.NowPlayingDecoderTests testArtworkDecodedFromBase64AndClearedByNull]' started.
+Test Case '-[SillTests.NowPlayingDecoderTests testArtworkDecodedFromBase64AndClearedByNull]' passed (0.001 seconds).
+Test Case '-[SillTests.NowPlayingDecoderTests testDiffMergesIntoState]' started.
+Test Case '-[SillTests.NowPlayingDecoderTests testDiffMergesIntoState]' passed (0.000 seconds).
+Test Case '-[SillTests.NowPlayingDecoderTests testElapsedExtrapolatesOnlyWhilePlaying]' started.
+Test Case '-[SillTests.NowPlayingDecoderTests testElapsedExtrapolatesOnlyWhilePlaying]' passed (0.000 seconds).
+Test Case '-[SillTests.NowPlayingDecoderTests testEmptyPayloadMeansNothingPlaying]' started.
+Test Case '-[SillTests.NowPlayingDecoderTests testEmptyPayloadMeansNothingPlaying]' passed (0.000 seconds).
+Test Case '-[SillTests.NowPlayingDecoderTests testFullPayloadDecodes]' started.
+Test Case '-[SillTests.NowPlayingDecoderTests testFullPayloadDecodes]' passed (0.000 seconds).
+Test Case '-[SillTests.NowPlayingDecoderTests testMalformedLinesAreIgnored]' started.
+Test Case '-[SillTests.NowPlayingDecoderTests testMalformedLinesAreIgnored]' passed (0.000 seconds).
+Test Case '-[SillTests.NowPlayingDecoderTests testNonDiffReplacesState]' started.
+Test Case '-[SillTests.NowPlayingDecoderTests testNonDiffReplacesState]' passed (0.000 seconds).
+Test Case '-[SillTests.NowPlayingDecoderTests testNullRemovesKey]' started.
+Test Case '-[SillTests.NowPlayingDecoderTests testNullRemovesKey]' passed (0.000 seconds).
+Test Case '-[SillTests.NowPlayingDecoderTests testPlainSecondsFieldsAreAccepted]' started.
+Test Case '-[SillTests.NowPlayingDecoderTests testPlainSecondsFieldsAreAccepted]' passed (0.000 seconds).
+Test Case '-[SillTests.NowPlayingDecoderTests testTrackKeyIgnoresPlayState]' started.
+Test Case '-[SillTests.NowPlayingDecoderTests testTrackKeyIgnoresPlayState]' passed (0.000 seconds).
+Test Suite 'NowPlayingDecoderTests' passed at 2026-09-20 10:09:34.831.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'ScreenGeometryTests' started at 2026-09-20 10:09:34.831.
+Test Case '-[SillTests.ScreenGeometryTests testCollapsedRectIsCentredAndWidensSymmetrically]' started.
+Test Case '-[SillTests.ScreenGeometryTests testCollapsedRectIsCentredAndWidensSymmetrically]' passed (0.000 seconds).
+Test Case '-[SillTests.ScreenGeometryTests testDeadZoneNeverSwallowsTheWholeNotch]' started.
+Test Case '-[SillTests.ScreenGeometryTests testDeadZoneNeverSwallowsTheWholeNotch]' passed (0.000 seconds).
+Test Case '-[SillTests.ScreenGeometryTests testExpandedRectFitsInsideWindow]' started.
+Test Case '-[SillTests.ScreenGeometryTests testExpandedRectFitsInsideWindow]' passed (0.000 seconds).
+Test Case '-[SillTests.ScreenGeometryTests testFallbackWidthIsClamped]' started.
+Test Case '-[SillTests.ScreenGeometryTests testFallbackWidthIsClamped]' passed (0.000 seconds).
+Test Case '-[SillTests.ScreenGeometryTests testHiddenMenuBarStillGivesAUsablePill]' started.
+Test Case '-[SillTests.ScreenGeometryTests testHiddenMenuBarStillGivesAUsablePill]' passed (0.000 seconds).
+Test Case '-[SillTests.ScreenGeometryTests testHoverRectExcludesDeadZone]' started.
+Test Case '-[SillTests.ScreenGeometryTests testHoverRectExcludesDeadZone]' passed (0.000 seconds).
+Test Case '-[SillTests.ScreenGeometryTests testNonNotchedScreenUsesFallbackPill]' started.
+Test Case '-[SillTests.ScreenGeometryTests testNonNotchedScreenUsesFallbackPill]' passed (0.000 seconds).
+Test Case '-[SillTests.ScreenGeometryTests testNotchedScreenMeasuresHardwareCutout]' started.
+Test Case '-[SillTests.ScreenGeometryTests testNotchedScreenMeasuresHardwareCutout]' passed (0.000 seconds).
+Test Case '-[SillTests.ScreenGeometryTests testPanelPointConversion]' started.
+Test Case '-[SillTests.ScreenGeometryTests testPanelPointConversion]' passed (0.000 seconds).
+Test Case '-[SillTests.ScreenGeometryTests testWindowFrameIsTopCentredOnSecondaryDisplayWithNegativeOrigin]' started.
+Test Case '-[SillTests.ScreenGeometryTests testWindowFrameIsTopCentredOnSecondaryDisplayWithNegativeOrigin]' passed (0.000 seconds).
+Test Suite 'ScreenGeometryTests' passed at 2026-09-20 10:09:34.832.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'ShelfStoreTests' started at 2026-09-20 10:09:34.832.
+Test Case '-[SillTests.ShelfStoreTests testClearKeepsPinned]' started.
+Test Case '-[SillTests.ShelfStoreTests testClearKeepsPinned]' passed (0.008 seconds).
+Test Case '-[SillTests.ShelfStoreTests testCopyInFolderCountsNestedBytes]' started.
+Test Case '-[SillTests.ShelfStoreTests testCopyInFolderCountsNestedBytes]' passed (0.006 seconds).
+Test Case '-[SillTests.ShelfStoreTests testCopyInSurvivesDeletingTheOriginal]' started.
+Test Case '-[SillTests.ShelfStoreTests testCopyInSurvivesDeletingTheOriginal]' passed (0.003 seconds).
+Test Case '-[SillTests.ShelfStoreTests testManifestRoundTrips]' started.
+Test Case '-[SillTests.ShelfStoreTests testManifestRoundTrips]' passed (0.003 seconds).
+Test Case '-[SillTests.ShelfStoreTests testMissingFilesAreDroppedOnLoad]' started.
+Test Case '-[SillTests.ShelfStoreTests testMissingFilesAreDroppedOnLoad]' passed (0.005 seconds).
+Test Case '-[SillTests.ShelfStoreTests testPinnedItemsAreNeverPruned]' started.
+Test Case '-[SillTests.ShelfStoreTests testPinnedItemsAreNeverPruned]' passed (0.002 seconds).
+Test Case '-[SillTests.ShelfStoreTests testPruneByBytes]' started.
+Test Case '-[SillTests.ShelfStoreTests testPruneByBytes]' passed (0.004 seconds).
+Test Case '-[SillTests.ShelfStoreTests testPruneByCountRemovesOldestUnpinnedFirst]' started.
+Test Case '-[SillTests.ShelfStoreTests testPruneByCountRemovesOldestUnpinnedFirst]' passed (0.004 seconds).
+Test Case '-[SillTests.ShelfStoreTests testWriteStoresData]' started.
+Test Case '-[SillTests.ShelfStoreTests testWriteStoresData]' passed (0.001 seconds).
+Test Suite 'ShelfStoreTests' passed at 2026-09-20 10:09:34.868.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.035 (0.036) seconds
+Test Suite 'SillPackageTests.xctest' passed at 2026-09-20 10:09:34.868.
+	 Executed 100 tests, with 0 failures (0 unexpected) in 0.086 (0.091) seconds
+Test Suite 'All tests' passed at 2026-09-20 10:09:34.868.
+	 Executed 100 tests, with 0 failures (0 unexpected) in 0.086 (0.092) seconds
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests passed after 0.001 seconds.

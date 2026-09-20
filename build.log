@@ -1,0 +1,19 @@
+Building for production...
+[0/12] Write sources
+[9/12] Write swift-version--79AA4F9932D1E87A.txt
+[11/14] Compiling DesignSystem Metrics.swift
+[12/14] Compiling Services Branding.swift
+[13/15] Compiling NotchCore DebugOverlay.swift
+[14/18] Compiling FeaturePower PowerModule.swift
+[15/19] Compiling SettingsUI OnboardingView.swift
+[16/20] Compiling FeatureShelf ShelfImporter.swift
+[17/20] Compiling FeatureNowPlaying AdapterProcess.swift
+[18/20] Compiling FeatureClipboard ClipEntry.swift
+[19/21] Compiling Sill AppDelegate.swift
+[19/21] Write Objects.LinkFileList
+[20/21] Linking Sill
+Build complete! (27.78s)
+Bundled mediaremote-adapter
+/Users/runner/work/notch/notch/build/Sill.app/Contents/Frameworks/MediaRemoteAdapter.framework: replacing existing signature
+/Users/runner/work/notch/notch/build/Sill.app: replacing existing signature
+Built /Users/runner/work/notch/notch/build/Sill.app

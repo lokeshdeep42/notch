@@ -1,0 +1,18 @@
+launched pid 6539 — settling for 12s
+PASS: still running after 12s
+ 6539  32672   0.0 00:12
+RSS: 31 MB (budget on hardware: < 80 MB)
+captured /Users/runner/work/notch/notch/build/smoke/screen.png
+--- app log (last 20 lines) ---
+Timestamp                       Thread     Type        Activity             PID    TTL  
+2026-09-20 10:09:34.698467+0000 0x5887     Info        0x0                  6525   0    xctest: (SillPackageTests) [app.sill.Sill:shelf] Pruned 1 item(s) to stay within caps
+2026-09-20 10:09:34.703206+0000 0x5887     Info        0x0                  6525   0    xctest: (SillPackageTests) [app.sill.Sill:shelf] Pruned 2 item(s) to stay within caps
+2026-09-20 10:09:35.259658+0000 0x58c0     Info        0x0                  6539   0    Sill: [app.sill.Sill:app] Sill 0.1.0 (1) launched
+2026-09-20 10:09:35.334714+0000 0x58c0     Info        0x0                  6539   0    Sill: [app.sill.Sill:media] Adapter stream started (pid 6541)
+2026-09-20 10:09:35.335055+0000 0x58c0     Info        0x0                  6539   0    Sill: [app.sill.Sill:app] Module nowPlaying activated
+2026-09-20 10:09:35.337576+0000 0x58c0     Info        0x0                  6539   0    Sill: [app.sill.Sill:app] Module shelf activated
+2026-09-20 10:09:35.338535+0000 0x58c0     Info        0x0                  6539   0    Sill: [app.sill.Sill:app] Module clipboard activated
+2026-09-20 10:09:35.360650+0000 0x58c0     Info        0x0                  6539   0    Sill: [app.sill.Sill:display] Panel created for display 1
+2026-09-20 10:09:35.377602+0000 0x58c0     Info        0x0                  6539   0    Sill: [app.sill.Sill:display] Reconciled: 1 panel(s)
+2026-09-20 10:09:35.399582+0000 0x58c0     Info        0x0                  6539   0    Sill: [app.sill.Sill:clipboard] Clipboard capture off
+smoke test passed: launched, ran 12s, quit cleanly, no helpers left behind

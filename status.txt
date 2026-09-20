@@ -1,0 +1,6 @@
+sha=0ef8f71b4d30d3f6a742c5a638757a791adb91b0
+adapter=success
+build=success
+test=success
+smoke=success
+warnings=0

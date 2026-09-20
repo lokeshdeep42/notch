@@ -1,0 +1,6 @@
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/runner/work/notch/notch/Vendor/mediaremote-adapter/build
+[ 84%] Built target MediaRemoteAdapter
+[100%] Built target MediaRemoteAdapterTestClient
+mediaremote-adapter v0.7.7 ready
