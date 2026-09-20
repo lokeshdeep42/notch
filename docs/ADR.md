@@ -126,6 +126,20 @@ Synthesising the paste would need Accessibility, which v1 does not request.
 **Decision:** JSON manifests plus blob files, capped by count and bytes and pruned on launch. GRDB
 not added. Revisit only if clipboard search becomes slow at the cap.
 
+## 2026-09-20 — Display eligibility extracted as a pure rule
+**Context:** "Multi-display correctness is a v1 feature" (CLAUDE.md §6), but the rules lived inside
+`NotchWindowManager.desiredDisplays()` behind `NSScreen.screens`, so no row of the QA display
+matrix could be tested anywhere but on a Mac with monitors plugged in.
+**Decision:** `DisplayEligibility.eligible(among:mode:chosenUUIDs:)` over a `DisplayCandidate`
+value type. `desiredDisplays()` builds candidates from `NSScreen` and calls it. Behaviour is
+unchanged, including both fallbacks (clamshell, all-chosen-unplugged) and the `NSScreen.screens`
+ordering that makes the first entry the menu-bar display.
+**Alternatives:** injecting a screen provider protocol into the manager — more machinery, and the
+manager's remaining work is all AppKit side effects that a fake screen would not exercise anyway.
+**Consequences:** the mode rules, both fallbacks and idempotence under rapid plug/unplug are now
+unit-tested on any machine. UUID lookup is still only performed in `.chosen` mode, so reconcile
+costs no more CoreGraphics round-trips than before.
+
 ## Still open (need the Mac)
 - Panel window level (`.statusBar` used) vs. Spotlight / notification banners.
 - Tracking-area reliability over the notch cutout.

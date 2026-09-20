@@ -195,27 +195,29 @@ public final class NotchWindowManager {
         }
         guard !screens.isEmpty else { return [:] }
 
-        let eligible: [(CGDirectDisplayID, NSScreen)]
-        switch preferences.displayMode {
-        case .all:
-            eligible = screens
-        case .builtInOnly:
-            let builtIn = screens.filter { CGDisplayIsBuiltin($0.0) != 0 }
-            // Clamshell mode: no built-in display is active. Fall back to the menu-bar display
-            // rather than silently showing nothing — "doesn't work on my monitor" is the complaint
-            // this product exists to fix.
-            eligible = builtIn.isEmpty ? Array(screens.prefix(1)) : builtIn
-        case .chosen:
-            let chosen = Set(preferences.chosenDisplayUUIDs)
-            let picked = screens.filter { chosen.contains(Self.uuidString(for: $0.0) ?? "") }
-            eligible = picked.isEmpty ? Array(screens.prefix(1)) : picked
+        // Resolving a UUID is a CoreGraphics round-trip per display, so only pay for it in the
+        // one mode that matches on it.
+        let needsUUID = preferences.displayMode == .chosen
+        let candidates = screens.map { id, _ in
+            DisplayCandidate(
+                id: id,
+                uuid: needsUUID ? Self.uuidString(for: id) : nil,
+                isBuiltIn: CGDisplayIsBuiltin(id) != 0
+            )
         }
+        let eligible = DisplayEligibility.eligible(
+            among: candidates,
+            mode: preferences.displayMode,
+            chosenUUIDs: Set(preferences.chosenDisplayUUIDs)
+        )
+        let screensByID = Dictionary(screens, uniquingKeysWith: { first, _ in first })
 
-        let fullscreen = FullscreenDetector.fullscreenDisplayIDs(among: eligible.map { $0.0 })
+        let fullscreen = FullscreenDetector.fullscreenDisplayIDs(among: eligible.map(\.id))
         var result: [CGDirectDisplayID: DesiredDisplay] = [:]
-        for (id, screen) in eligible where !fullscreen.contains(id) {
+        for candidate in eligible where !fullscreen.contains(candidate.id) {
+            guard let screen = screensByID[candidate.id] else { continue }
             let geometry = NotchGeometry.resolve(screen: screen, fallbackWidth: CGFloat(preferences.pillWidth))
-            result[id] = DesiredDisplay(screen: screen, geometry: geometry)
+            result[candidate.id] = DesiredDisplay(screen: screen, geometry: geometry)
         }
         return result
     }
