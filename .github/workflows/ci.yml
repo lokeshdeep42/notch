@@ -53,6 +53,27 @@ jobs:
           set -o pipefail
           Scripts/test.sh 2>&1 | tee test.log
 
+      # A probe, not yet a gate: it is the first time this app has been launched anywhere, and
+      # whether a runner gives us a usable window server is exactly what we are finding out.
+      # Promote to the hard gate below once it has passed a few runs.
+      - name: Smoke test (launch, screenshot, clean quit)
+        id: smoke
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          # `bash …` so the step does not depend on the exec bit surviving in git.
+          bash Scripts/smoke.sh 12 2>&1 | tee smoke.log
+
+      - name: Upload smoke artifacts
+        if: always() && steps.build.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sill-smoke
+          path: build/smoke
+          retention-days: 30
+          if-no-files-found: warn
+
       - name: Annotate compiler errors
         if: always()
         run: |
@@ -65,12 +86,13 @@ jobs:
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p "$RUNNER_TEMP/logs"
-          cp adapter.log build.log test.log "$RUNNER_TEMP/logs/" 2>/dev/null || true
+          cp adapter.log build.log test.log smoke.log "$RUNNER_TEMP/logs/" 2>/dev/null || true
           {
             echo "sha=$GITHUB_SHA"
             echo "adapter=${{ steps.adapter.outcome }}"
             echo "build=${{ steps.build.outcome }}"
             echo "test=${{ steps.test.outcome }}"
+            echo "smoke=${{ steps.smoke.outcome }}"
             echo "warnings=$(grep -hE 'warning: ' build.log test.log 2>/dev/null | grep -v '^ld: warning' | sort -u | wc -l | tr -d ' ')"
           } > "$RUNNER_TEMP/logs/status.txt"
           cd "$RUNNER_TEMP/logs"
