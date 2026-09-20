@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import Dispatch
 import FeatureClipboard
 import FeatureNowPlaying
 import FeaturePower
@@ -19,9 +20,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var settings: SettingsWindowController?
     private var onboarding: OnboardingWindowController?
     private var cancellables: Set<AnyCancellable> = []
+    private var signalSources: [DispatchSourceSignal] = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         CostSample.markLaunch()
+        installSignalHandlers()
         Log.app.info("\(Branding.appName, privacy: .public) \(Branding.version, privacy: .public) launched")
 
         let settings = SettingsWindowController(
@@ -51,6 +54,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let onboarding = OnboardingWindowController(preferences: preferences)
             self.onboarding = onboarding
             onboarding.show()
+        }
+    }
+
+    /// Quit cleanly on SIGTERM and SIGINT — logout, restart, `killall`, and Ctrl-C from
+    /// `Scripts/run.sh`. The default disposition kills the process outright, which skips
+    /// `applicationWillTerminate` and orphans the Now Playing helper: a stray `perl` process in the
+    /// user's battery report is precisely what this product exists to avoid. Found by
+    /// `Scripts/smoke.sh` on CI.
+    ///
+    /// A dispatch signal source is event-driven and costs nothing while idle: no timer, no poll.
+    private func installSignalHandlers() {
+        for number in [SIGTERM, SIGINT] {
+            // The source only receives the signal if the default disposition is disarmed first.
+            _ = signal(number, SIG_IGN)
+            let source = DispatchSource.makeSignalSource(signal: number, queue: .main)
+            source.setEventHandler {
+                MainActor.assumeIsolated {
+                    Log.app.info("Signal \(number, privacy: .public) received; terminating")
+                    NSApp.terminate(nil)
+                }
+            }
+            source.resume()
+            signalSources.append(source)
         }
     }
 
