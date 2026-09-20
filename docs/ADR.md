@@ -155,6 +155,21 @@ screenshot of the panel in its no-notch fallback form. It proves nothing about n
 hover or energy: runners have no notch and a VM's power numbers are meaningless. Promote to the
 hard fail gate once it has passed a few runs.
 
+## 2026-09-20 — Quit cleanly on SIGTERM/SIGINT
+**Context:** the CI smoke test's first run found it: Sill dies on SIGTERM without running
+`applicationWillTerminate`, so `AdapterProcess.stop()` never fires and the `/usr/bin/perl` Now
+Playing helper is orphaned. SIGTERM is what logout, restart and `killall` send, so this is not a
+test-only path — a stray perl process in a battery report is the exact failure this product sells
+against.
+**Decision:** `AppDelegate` disarms the default disposition for SIGTERM and SIGINT and takes them
+on a `DispatchSource` signal source on the main queue, which calls `NSApp.terminate(nil)`. The
+normal teardown then runs as it does for menu-bar Quit.
+**Alternatives:** an `atexit` handler (does not run on signal death either); having the helper exit
+on parent death via an stdin pipe — better in that it also survives SIGKILL, but it needs a change
+to the vendored adapter, so it stays a follow-up.
+**Consequences:** SIGKILL and a hard crash still orphan the helper. Worth revisiting if it shows up
+on hardware. A signal source is event-driven: no timer, no poll, no idle cost.
+
 ## Still open (need the Mac)
 - Panel window level (`.statusBar` used) vs. Spotlight / notification banners.
 - Tracking-area reliability over the notch cutout.
