@@ -1,11 +1,24 @@
 # Verify on a real Mac
 
-Everything in this repo compiles and passes its unit tests on GitHub's macOS 15 runners, but
-**none of it has run on real hardware yet**. This is the checklist for the first session on a
-MacBook. It is ordered by risk: if section 1 or 2 fails, stop and report — those are Milestone 0,
-the part the whole product depends on.
+Everything in this repo compiles, passes its unit tests and survives a launch-and-quit smoke
+test on GitHub's macOS 15 runners, but **none of it has run on notch hardware yet**. This is the
+checklist for the first session on a MacBook. It is ordered by risk: if section 1 or 2 fails, stop
+and report — those are Milestone 0, the part the whole product depends on.
 
 Time needed: about 45 minutes for sections 0–6, longer with an external monitor.
+
+**What CI already answers, so you do not have to check it here:** the app builds warning-free
+against the macOS 15 SDK; the display-matrix maths (notch measurement, top-centre anchoring,
+per-display independence, the clamshell and chosen-display fallbacks) is unit-tested against a
+fixture set of MacBook and external-display geometries; and each run launches the app, holds it,
+screenshots it and quits it, failing if it dies early, ignores SIGTERM or leaves a
+`mediaremote-adapter.pl` helper behind. Download the **Sill-smoke** artifact from a run to see the
+screenshot and the app's log.
+
+**What CI cannot answer, which is everything below:** a runner has no notch (so the panel renders
+in its no-notch pill form and none of the cutout geometry is exercised), no battery, one virtual
+display, no media session, and power figures from a VM that mean nothing against the budget in
+CLAUDE.md. The product's headline claim is unverified until section 3 is filled in.
 
 ---
 

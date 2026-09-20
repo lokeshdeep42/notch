@@ -140,6 +140,21 @@ manager's remaining work is all AppKit side effects that a fake screen would not
 unit-tested on any machine. UUID lookup is still only performed in `.chosen` mode, so reconcile
 costs no more CoreGraphics round-trips than before.
 
+## 2026-09-20 — CI launches the app (smoke test), as a probe rather than a gate
+**Context:** CI compiled the app and ran unit tests but had never once launched it, so a crash on
+launch, a malformed Info.plist or a missing bundled resource would have shipped green.
+**Decision:** `Scripts/smoke.sh` runs the binary inside the bundle, holds it for 12 s, records RSS,
+takes a screenshot, dumps the unified log, then SIGTERMs it and fails if the process ignores the
+signal or leaves a `mediaremote-adapter.pl` helper behind (QA checklist §Performance). CI runs it
+with `continue-on-error` and publishes `smoke=` in the ci-logs status, because whether a GitHub
+runner offers a usable window server is itself unverified.
+**Alternatives:** XCUITest — needs an Xcode project and driving a menu-bar app with no windows;
+`open` instead of the binary — loses stdout, where AppKit faults surface first.
+**Consequences:** launch regressions and helper leaks are caught per-push, and each run leaves a
+screenshot of the panel in its no-notch fallback form. It proves nothing about notch geometry,
+hover or energy: runners have no notch and a VM's power numbers are meaningless. Promote to the
+hard fail gate once it has passed a few runs.
+
 ## Still open (need the Mac)
 - Panel window level (`.statusBar` used) vs. Spotlight / notification banners.
 - Tracking-area reliability over the notch cutout.

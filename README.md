@@ -36,6 +36,7 @@ Scripts/build.sh           # → build/Sill.app (ad-hoc signed)
 Scripts/test.sh            # unit tests
 Scripts/run.sh             # debug build + launch
 Scripts/bench.sh 120       # idle CPU / wakeups / RSS for Sill and its helper
+Scripts/smoke.sh           # launch, screenshot, clean quit — no notch required
 ```
 
 Every push to `main` runs the same steps on CI and uploads a ready-to-run `Sill.app` artifact.
