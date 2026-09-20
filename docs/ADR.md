@@ -170,6 +170,18 @@ to the vendored adapter, so it stays a follow-up.
 **Consequences:** SIGKILL and a hard crash still orphan the helper. Worth revisiting if it shows up
 on hardware. A signal source is event-driven: no timer, no poll, no idle cost.
 
+## 2026-09-20 — Smoke test promoted from probe to CI gate
+**Context:** the entry above left it `continue-on-error` until it had proved itself. It has: it
+failed correctly on its first run (orphaned Now Playing helper), and has been green on every run
+since. The open question it was probing — whether a GitHub runner provides a usable window server
+— is answered yes, twice over (panel created, screenshot captured).
+**Decision:** `smoke` joins `build` and `test` in the final fail gate. It keeps
+`continue-on-error` on the step itself, as they do, so the log-publish and artifact steps still
+run when it fails; the gate step is what turns the run red.
+**Consequences:** a launch crash, a SIGTERM the app ignores, or a leaked helper now blocks a
+merge. A missing screenshot stays non-fatal inside the script, so a runner without a window
+server degrades rather than blocking.
+
 ## Still open (need the Mac)
 - Panel window level (`.statusBar` used) vs. Spotlight / notification banners.
 - Tracking-area reliability over the notch cutout.
