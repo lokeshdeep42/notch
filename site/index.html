@@ -1,0 +1,3799 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Sill — the notch app that disappears</title>
+    <meta
+      name="description"
+      content="Sill turns the MacBook notch into a panel for media, files and clipboard history, without draining your battery or breaking on external displays. Join the waitlist."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      // Apply a saved theme before first paint so the page never flashes the wrong one.
+      try {
+        const t = localStorage.getItem("sill-theme");
+        if (t === "light" || t === "dark")
+          document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wdth,wght@75..100,400..700&family=JetBrains+Mono:wght@400;500&display=swap"
+    />
+    <style>
+      /* ================= Design tokens =================
+     Semantic names (background / card / muted / primary / border / ring) so every component
+     reads from one set and both themes resolve together. The notch itself is always black. */
+      :root {
+        --background: #f6f6f7;
+        --foreground: #0c0c0f;
+        --card: #ffffff;
+        --card-foreground: #0c0c0f;
+        --muted: #ededf0;
+        --muted-foreground: #5c5e6a;
+        --subtle: #8a8c97;
+        --border: #e1e2e7;
+        --input: #d6d7de;
+        --primary: #0c0c0f;
+        --primary-foreground: #ffffff;
+        --primary-hover: #26262c;
+        --success: #178a4a;
+        --success-soft: #e3f4ea;
+        --destructive: #d23a2f;
+        --ring: #0c0c0f;
+        --nav: rgba(246, 246, 247, 0.72);
+        --shadow-sm: 0 1px 2px rgba(12, 12, 15, 0.06);
+        --shadow-md:
+          0 1px 2px rgba(12, 12, 15, 0.05),
+          0 8px 24px -8px rgba(12, 12, 15, 0.12);
+        --shadow-lg:
+          0 2px 4px rgba(12, 12, 15, 0.04),
+          0 24px 60px -20px rgba(12, 12, 15, 0.28);
+        --wall-sky: #9db4cc;
+        --wall-mid: #d9c3a5;
+        --wall-ground: #5f725f;
+
+        --notch: #000;
+        --n-ink: rgba(255, 255, 255, 0.95);
+        --n-ink-2: rgba(255, 255, 255, 0.62);
+        --n-ink-3: rgba(255, 255, 255, 0.4);
+        --n-fill: rgba(255, 255, 255, 0.08);
+        --n-fill-hover: rgba(255, 255, 255, 0.13);
+        --n-fill-press: rgba(255, 255, 255, 0.19);
+        --n-positive: #5cdb78;
+
+        --radius: 12px;
+        --radius-lg: 20px;
+        --sans:
+          "Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Helvetica, Arial, sans-serif;
+        --mono:
+          "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        /* Motion tokens. Enter/exit uses the strong ease-out; things moving on screen use
+           ease-in-out; press feedback releases in 160ms. */
+        --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+        --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+        --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+        --settle: var(--ease-out);
+        --dur-press: 160ms;
+        --dur-fast: 150ms;
+        --dur-base: 250ms;
+        --dur-slow: 450ms;
+        interpolate-size: allow-keywords;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --background: #09090b;
+          --foreground: #f2f2f4;
+          --card: #111114;
+          --card-foreground: #f2f2f4;
+          --muted: #1a1a1f;
+          --muted-foreground: #a1a3ae;
+          --subtle: #71737e;
+          --border: #24252c;
+          --input: #30313a;
+          --primary: #f2f2f4;
+          --primary-foreground: #09090b;
+          --primary-hover: #ffffff;
+          --success: #4fd07f;
+          --success-soft: rgba(79, 208, 127, 0.12);
+          --destructive: #ff6b61;
+          --ring: #f2f2f4;
+          --nav: rgba(9, 9, 11, 0.7);
+          --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+          --shadow-md:
+            0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+          --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, 0.8);
+          --wall-sky: #1d2a3b;
+          --wall-mid: #3d3a44;
+          --wall-ground: #1e2a24;
+        }
+      }
+      :root[data-theme="dark"] {
+        --background: #09090b;
+        --foreground: #f2f2f4;
+        --card: #111114;
+        --card-foreground: #f2f2f4;
+        --muted: #1a1a1f;
+        --muted-foreground: #a1a3ae;
+        --subtle: #71737e;
+        --border: #24252c;
+        --input: #30313a;
+        --primary: #f2f2f4;
+        --primary-foreground: #09090b;
+        --primary-hover: #ffffff;
+        --success: #4fd07f;
+        --success-soft: rgba(79, 208, 127, 0.12);
+        --destructive: #ff6b61;
+        --ring: #f2f2f4;
+        --nav: rgba(9, 9, 11, 0.7);
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+        --shadow-md:
+          0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+        --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, 0.8);
+        --wall-sky: #1d2a3b;
+        --wall-mid: #3d3a44;
+        --wall-ground: #1e2a24;
+      }
+
+      /* ================= Base ================= */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 80px;
+      }
+      body {
+        margin: 0;
+        background: var(--background);
+        color: var(--foreground);
+        font: 400 16px/1.6 var(--sans);
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+      /* Theme switch fallback when View Transitions aren't available: cross-fade colours only. */
+      .theme-fade,
+      .theme-fade *,
+      .theme-fade *::before,
+      .theme-fade *::after {
+        transition:
+          background-color 0.3s ease,
+          color 0.3s ease,
+          border-color 0.3s ease,
+          box-shadow 0.3s ease !important;
+      }
+      ::view-transition-old(root),
+      ::view-transition-new(root) {
+        animation: none;
+        mix-blend-mode: normal;
+      }
+      a {
+        color: inherit;
+      }
+      img,
+      svg {
+        display: block;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      :focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+        border-radius: 6px;
+      }
+      .container {
+        max-width: 1120px;
+        margin-inline: auto;
+        padding-inline: 20px;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+      .icon {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.75;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        flex: none;
+      }
+
+      /* ================= Components ================= */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        height: 44px;
+        padding-inline: 18px;
+        border-radius: var(--radius);
+        font: 600 15px var(--sans);
+        white-space: nowrap;
+        text-decoration: none;
+        transition:
+          background-color var(--dur-fast) ease,
+          color var(--dur-fast) ease,
+          transform var(--dur-press) var(--ease-out),
+          box-shadow var(--dur-fast) ease;
+      }
+      .btn:active {
+        transform: scale(0.97);
+        transition-duration: 0s;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: var(--primary-foreground);
+        box-shadow: var(--shadow-sm);
+      }
+      .btn-primary:hover {
+        background: var(--primary-hover);
+      }
+      .btn-outline {
+        border: 1px solid var(--input);
+        background: var(--card);
+      }
+      .btn-outline:hover {
+        background: var(--muted);
+      }
+      .btn-ghost:hover {
+        background: var(--muted);
+      }
+      .btn-sm {
+        height: 36px;
+        padding-inline: 14px;
+        font-size: 14px;
+        border-radius: 10px;
+      }
+      .btn-icon {
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border-radius: 10px;
+      }
+      .btn[aria-busy="true"] {
+        cursor: progress;
+      }
+      .spinner {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        animation: spin 0.7s linear infinite;
+        display: none;
+      }
+      .btn[aria-busy="true"] .spinner {
+        display: block;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 30px;
+        padding-inline: 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        font: 500 13px var(--sans);
+        color: var(--muted-foreground);
+      }
+      .badge .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--success);
+        box-shadow: 0 0 0 3px var(--success-soft);
+      }
+
+      .card {
+        background: var(--card);
+        color: var(--card-foreground);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .label {
+        font: 500 14px var(--sans);
+        color: var(--foreground);
+      }
+      .label em {
+        font-style: normal;
+        color: var(--subtle);
+        font-weight: 400;
+      }
+      .input,
+      .select {
+        width: 100%;
+        min-width: 0;
+        height: 44px;
+        padding-inline: 12px;
+        background: var(--background);
+        color: var(--foreground);
+        border: 1px solid var(--input);
+        border-radius: 10px;
+        font: 400 16px var(--sans);
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s,
+          background-color 0.15s;
+      }
+      .input::placeholder {
+        color: var(--subtle);
+      }
+      .input:hover,
+      .select:hover {
+        border-color: var(--subtle);
+      }
+      .input:focus,
+      .select:focus {
+        outline: none;
+        border-color: var(--ring);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 14%, transparent);
+        background: var(--card);
+      }
+      .select {
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        padding-right: 38px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a8c97' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+      }
+      .field {
+        display: grid;
+        gap: 6px;
+        min-width: 0;
+      }
+      .field.invalid .input {
+        border-color: var(--destructive);
+      }
+      .field.invalid .input:focus {
+        box-shadow: 0 0 0 3px
+          color-mix(in srgb, var(--destructive) 18%, transparent);
+      }
+      .field-error {
+        margin: 0;
+        font-size: 13px;
+        color: var(--destructive);
+        animation: err-in 0.2s var(--ease-out);
+      }
+      @keyframes err-in {
+        from {
+          opacity: 0;
+          transform: translateY(-3px);
+        }
+      }
+      .field-error:empty {
+        display: none;
+      }
+
+      .eyebrow {
+        margin: 0 0 12px;
+        font: 500 12px var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted-foreground);
+      }
+      .section {
+        padding-block: 96px;
+      }
+      .section-head {
+        max-width: 640px;
+        margin-bottom: 48px;
+      }
+      .section-head h2 {
+        margin: 0;
+        font-weight: 600;
+        font-size: clamp(30px, 4.2vw, 44px);
+        line-height: 1.08;
+        letter-spacing: -0.03em;
+        text-wrap: balance;
+        font-stretch: 92%;
+      }
+      .section-head p {
+        margin: 16px 0 0;
+        font-size: 18px;
+        color: var(--muted-foreground);
+        text-wrap: pretty;
+      }
+
+      .segmented {
+        position: relative;
+        display: inline-flex;
+        padding: 3px;
+        gap: 2px;
+        background: var(--muted);
+        border-radius: 11px;
+        flex-wrap: wrap;
+      }
+      .segmented button {
+        position: relative;
+        z-index: 1;
+        height: 32px;
+        padding-inline: 12px;
+        border-radius: 8px;
+        font: 500 14px var(--sans);
+        color: var(--muted-foreground);
+        transition:
+          background-color var(--dur-fast) ease,
+          color var(--dur-fast) ease,
+          box-shadow var(--dur-fast) ease;
+      }
+      .segmented button:hover {
+        color: var(--foreground);
+      }
+      .segmented button[aria-pressed="true"] {
+        background: var(--card);
+        color: var(--foreground);
+        box-shadow: var(--shadow-sm);
+      }
+      /* With JS, one thumb slides between options instead of the highlight teleporting. */
+      .segmented .thumb {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--card);
+        box-shadow: var(--shadow-sm);
+        transition:
+          transform 0.35s var(--ease-out),
+          width 0.35s var(--ease-out);
+      }
+      .segmented.has-thumb button[aria-pressed="true"] {
+        background: transparent;
+        box-shadow: none;
+      }
+
+      .switch {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font: 500 14px var(--sans);
+        cursor: pointer;
+      }
+      .switch input {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 38px;
+        height: 22px;
+        border-radius: 999px;
+        background: var(--input);
+        position: relative;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin: 0;
+      }
+      .switch input::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        transition:
+          transform 0.3s var(--ease-out),
+          width var(--dur-fast) var(--ease-out);
+      }
+      .switch input:checked {
+        background: var(--success);
+      }
+      .switch input:checked::after {
+        transform: translateX(16px);
+      }
+      /* iOS detail: the knob stretches while held, toward where it will go. */
+      .switch input:active:not(:disabled)::after {
+        width: 22px;
+      }
+      .switch input:checked:active:not(:disabled)::after {
+        transform: translateX(12px);
+      }
+      .switch input:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .switch:has(input:disabled) {
+        color: var(--subtle);
+        cursor: not-allowed;
+      }
+
+      /* ================= Nav ================= */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        padding-top: env(safe-area-inset-top, 0px);
+        background: var(--nav);
+        -webkit-backdrop-filter: blur(16px) saturate(180%);
+        backdrop-filter: blur(16px) saturate(180%);
+        border-bottom: 1px solid transparent;
+        transition: border-color 0.2s;
+      }
+      .nav.scrolled {
+        border-bottom-color: var(--border);
+      }
+      .nav .container {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        height: 64px;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 18px;
+        letter-spacing: -0.02em;
+        text-decoration: none;
+      }
+      .logo-mark {
+        width: 28px;
+        height: 20px;
+        border-radius: 6px;
+        border: 1.75px solid currentColor;
+        position: relative;
+      }
+      .logo-mark::after {
+        content: "";
+        position: absolute;
+        top: -1px;
+        left: 50%;
+        width: 11px;
+        height: 5px;
+        transform: translateX(-50%);
+        background: currentColor;
+        border-radius: 0 0 3px 3px;
+      }
+      .nav-links {
+        display: flex;
+        gap: 4px;
+        margin-right: auto;
+      }
+      .nav-links a {
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--muted-foreground);
+        text-decoration: none;
+        transition:
+          color 0.15s,
+          background-color 0.15s;
+      }
+      .nav-links a:hover {
+        color: var(--foreground);
+        background: var(--muted);
+      }
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .theme-toggle {
+        position: relative;
+      }
+      .theme-toggle .icon {
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        transition:
+          transform 0.45s var(--ease-out),
+          opacity 0.2s ease;
+      }
+      .theme-toggle .sun {
+        opacity: 0;
+        transform: rotate(-90deg) scale(0.5);
+      }
+      :root[data-theme="dark"] .theme-toggle .sun {
+        opacity: 1;
+        transform: none;
+      }
+      :root[data-theme="dark"] .theme-toggle .moon {
+        opacity: 0;
+        transform: rotate(90deg) scale(0.5);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) .theme-toggle .sun {
+          opacity: 1;
+          transform: none;
+        }
+        :root:not([data-theme="light"]) .theme-toggle .moon {
+          opacity: 0;
+          transform: rotate(90deg) scale(0.5);
+        }
+      }
+
+      /* ================= Hero ================= */
+      .hero {
+        padding-block: 72px 56px;
+      }
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+        gap: 56px;
+        align-items: center;
+      }
+      .hero h1 {
+        margin: 20px 0 0;
+        font-weight: 600;
+        font-stretch: 88%;
+        font-size: clamp(44px, 6.6vw, 80px);
+        line-height: 0.98;
+        letter-spacing: -0.045em;
+        text-wrap: balance;
+      }
+      .hero h1 .soft {
+        color: var(--subtle);
+      }
+      .hero-sub {
+        margin: 24px 0 0;
+        font-size: 19px;
+        line-height: 1.55;
+        color: var(--muted-foreground);
+        max-width: 36ch;
+        text-wrap: pretty;
+      }
+      .trust {
+        list-style: none;
+        padding: 0;
+        margin: 32px 0 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 22px;
+        font-size: 14px;
+        color: var(--muted-foreground);
+      }
+      .trust li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .trust .icon {
+        width: 16px;
+        height: 16px;
+        color: var(--success);
+        stroke-width: 2.2;
+      }
+
+      /* Page-load entrance: a short stagger, and every element ends visible even if the
+         animation never runs (fill-mode backwards only applies during the delay). */
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+          filter: blur(4px);
+        }
+      }
+      .hero .badge,
+      .hero h1,
+      .hero-sub,
+      .trust,
+      .hero .join,
+      .demo-wrap .device {
+        animation: rise 0.8s var(--ease-out) backwards;
+      }
+      .hero h1 {
+        animation-delay: 60ms;
+      }
+      .hero-sub {
+        animation-delay: 120ms;
+      }
+      .trust {
+        animation-delay: 180ms;
+      }
+      .hero .join {
+        animation-delay: 240ms;
+      }
+      .demo-wrap .device {
+        animation-delay: 320ms;
+        animation-duration: 1s;
+      }
+
+      /* Scroll reveal. Only applied by JS to content below the fold, so nothing is hidden
+         without script. */
+      body .reveal {
+        transition:
+          opacity 0.7s var(--ease-out),
+          transform 0.7s var(--ease-out);
+        transition-delay: var(--d, 0ms);
+      }
+      .reveal.pending {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+
+      .join {
+        padding: 28px;
+        box-shadow: var(--shadow-lg);
+        position: relative;
+      }
+      .join h2 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .join .lead {
+        margin: 6px 0 22px;
+        color: var(--muted-foreground);
+        font-size: 15px;
+      }
+      .join form {
+        display: grid;
+        gap: 16px;
+      }
+      .join .row2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .join .btn {
+        width: 100%;
+        height: 48px;
+        font-size: 16px;
+      }
+      .join .fine {
+        margin: 0;
+        font-size: 13px;
+        color: var(--subtle);
+        text-align: center;
+      }
+      .join .status {
+        margin: 0;
+        font-size: 14px;
+        color: var(--muted-foreground);
+      }
+      .join .status:empty {
+        display: none;
+      }
+      .join .status.error {
+        color: var(--destructive);
+      }
+      .hp {
+        position: absolute;
+        left: -9999px;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+      }
+      .join.flash {
+        animation: flash 1s var(--settle);
+      }
+      @keyframes flash {
+        0% {
+          box-shadow:
+            0 0 0 0 color-mix(in srgb, var(--ring) 35%, transparent),
+            var(--shadow-lg);
+        }
+        100% {
+          box-shadow:
+            0 0 0 14px transparent,
+            var(--shadow-lg);
+        }
+      }
+
+      #join-body > * {
+        animation: arrive 0.45s var(--ease-out);
+      }
+      .done {
+        display: grid;
+        gap: 8px;
+        justify-items: start;
+      }
+      @keyframes arrive {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+          filter: blur(2px);
+        }
+      }
+      .done .tick {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: var(--success-soft);
+        color: var(--success);
+        display: grid;
+        place-items: center;
+        margin-bottom: 6px;
+        animation: tick-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+      }
+      /* The one celebratory moment on the page, so it's allowed a little overshoot. */
+      @keyframes tick-pop {
+        from {
+          transform: scale(0.6);
+          opacity: 0;
+        }
+      }
+      .done .tick svg {
+        width: 22px;
+        height: 22px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 24;
+        stroke-dashoffset: 24;
+        animation: draw 0.45s 0.15s var(--settle) forwards;
+      }
+      @keyframes draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+      .done h2 {
+        font-size: 22px;
+      }
+      .done p {
+        margin: 0;
+        color: var(--muted-foreground);
+      }
+      .done .link {
+        margin-top: 10px;
+        font-size: 14px;
+        color: var(--muted-foreground);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      .done .link:hover {
+        color: var(--foreground);
+      }
+
+      /* ================= Demo ================= */
+      .demo-wrap {
+        padding-bottom: 24px;
+      }
+      .device {
+        border-radius: 22px 22px 10px 10px;
+        padding: 12px 12px 0;
+        background: #0b0b0c;
+        box-shadow:
+          var(--shadow-lg),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+      }
+      .screen {
+        position: relative;
+        height: 420px;
+        overflow: hidden;
+        border-radius: 10px 10px 0 0;
+        background:
+          radial-gradient(
+            90% 60% at 50% 105%,
+            var(--wall-ground),
+            transparent 70%
+          ),
+          linear-gradient(
+            180deg,
+            var(--wall-sky) 0%,
+            var(--wall-mid) 75%,
+            var(--wall-ground) 100%
+          );
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: pan-y;
+      }
+      .device-base {
+        height: 14px;
+        margin-inline: -12px;
+        background: linear-gradient(#2a2a2e, #141416);
+        border-radius: 0 0 16px 16px;
+        position: relative;
+      }
+      .device-base::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: 120px;
+        height: 6px;
+        transform: translateX(-50%);
+        background: #0b0b0c;
+        border-radius: 0 0 8px 8px;
+      }
+      .menubar {
+        height: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-inline: 14px;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.9);
+        background: rgba(0, 0, 0, 0.2);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+      }
+      .menubar span {
+        margin-right: 18px;
+      }
+      .menubar b {
+        font-weight: 600;
+      }
+      .menubar .right {
+        font: 500 12px var(--mono);
+      }
+
+      .notch {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        z-index: 5;
+        width: 190px;
+        height: 30px;
+        transform: translateX(-50%);
+        background: var(--notch);
+        border-radius: 0 0 12px 12px;
+        overflow: hidden;
+        outline: none;
+        cursor: pointer;
+        color: var(--n-ink);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0);
+        transition: box-shadow 0.35s var(--ease-out);
+      }
+      .notch.open {
+        box-shadow: 0 18px 50px -10px rgba(0, 0, 0, 0.55);
+      }
+      .notch:focus-visible {
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
+      }
+      .notch.target {
+        box-shadow:
+          0 0 0 2px rgba(255, 255, 255, 0.5),
+          0 18px 50px -10px rgba(0, 0, 0, 0.55);
+      }
+      .pill {
+        position: absolute;
+        inset: 0 0 auto;
+        height: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-inline: 14px;
+        transition: opacity 0.12s ease;
+      }
+      /* Closing: let the notch shrink most of the way before the pill content returns. */
+      .notch:not(.open) .pill {
+        transition: opacity 0.2s ease 0.18s;
+      }
+      .pill .mini-art {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        background: var(--art, #555);
+        transition:
+          opacity 0.2s,
+          transform 0.2s var(--settle);
+      }
+      .eq {
+        display: flex;
+        gap: 2px;
+        align-items: flex-end;
+        height: 12px;
+        transition: opacity 0.2s;
+      }
+      .eq i {
+        width: 2px;
+        height: 100%;
+        background: var(--n-ink-2);
+        border-radius: 1px;
+        transform: scaleY(0.3);
+        transform-origin: bottom;
+        transition: transform 0.3s var(--ease-out);
+      }
+      .notch.playing .eq i {
+        animation: eq 0.9s ease-in-out infinite alternate;
+      }
+      .eq i:nth-child(2) {
+        animation-delay: -0.3s !important;
+      }
+      .eq i:nth-child(3) {
+        animation-delay: -0.6s !important;
+      }
+      @keyframes eq {
+        from {
+          transform: scaleY(0.25);
+        }
+        to {
+          transform: scaleY(1);
+        }
+      }
+      .notch:not(.playing) .pill > * {
+        opacity: 0;
+        transform: scale(0.6);
+      }
+      .notch.open .pill {
+        opacity: 0;
+      }
+
+      /* The panel is always laid out at its open width and the notch clips it, so opening
+         reveals content from the centre instead of re-flowing it every frame. */
+      .panel {
+        position: absolute;
+        top: 34px;
+        left: 50%;
+        width: var(--open-w, 620px);
+        margin-left: calc(var(--open-w, 620px) / -2);
+        height: 172px;
+        display: grid;
+        grid-template-columns: 1.3fr 1fr 1fr;
+        gap: 10px;
+        padding: 4px 16px 16px;
+      }
+      /* Tiles: staggered and a little slower on open, all at once and quick on close. */
+      .tile {
+        --td: 0ms;
+        background: var(--n-fill);
+        border-radius: 14px;
+        padding: 12px;
+        min-width: 0;
+        opacity: 0;
+        transform: translateY(-8px) scale(0.97);
+        transition:
+          opacity 0.12s ease,
+          transform 0.15s var(--ease-out),
+          background-color 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+      .notch.open .tile {
+        opacity: 1;
+        transform: none;
+        transition:
+          opacity 0.3s var(--ease-out) var(--td),
+          transform 0.5s var(--ease-out) var(--td),
+          background-color 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+      .notch.open .tile:nth-child(1) {
+        --td: 70ms;
+      }
+      .notch.open .tile:nth-child(2) {
+        --td: 115ms;
+      }
+      .notch.open .tile:nth-child(3) {
+        --td: 160ms;
+      }
+      .tile h4 {
+        margin: 0 0 6px;
+        height: 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font: 500 10px/1 var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--n-ink-3);
+      }
+      .tile h4 button {
+        font: 500 10px var(--mono);
+        letter-spacing: 0.06em;
+        color: var(--n-ink-2);
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+      .tile h4 button:hover {
+        background: var(--n-fill-hover);
+      }
+      .np {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .art {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        flex: none;
+        background: var(--art, #555);
+        transition: transform 0.35s var(--settle);
+      }
+      .notch:not(.playing) .art {
+        transform: scale(0.9);
+      }
+      .np strong {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .np em {
+        display: block;
+        font-style: normal;
+        font-size: 12px;
+        color: var(--n-ink-2);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .scrub {
+        margin-top: 12px;
+        padding-block: 6px;
+        cursor: pointer;
+        touch-action: none;
+      }
+      .scrub .track {
+        height: 3px;
+        background: var(--n-fill-hover);
+        border-radius: 2px;
+        transition: height 0.15s;
+      }
+      .scrub:hover .track,
+      .scrub.active .track {
+        height: 6px;
+      }
+      .scrub .fill {
+        display: block;
+        height: 100%;
+        width: 100%;
+        background: var(--n-ink);
+        border-radius: 2px;
+        transform: scaleX(0);
+        transform-origin: left;
+      }
+      .scrub .fill.jump {
+        transition: transform 0.4s var(--ease-out);
+      }
+      .times {
+        display: flex;
+        justify-content: space-between;
+        font: 500 10px var(--mono);
+        color: var(--n-ink-3);
+        font-variant-numeric: tabular-nums;
+      }
+      .controls {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 2px;
+      }
+      .controls button {
+        width: 30px;
+        height: 26px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        transition:
+          background-color 0.1s,
+          transform 0.1s;
+      }
+      .controls button:hover {
+        background: var(--n-fill-hover);
+      }
+      .controls button:active {
+        background: var(--n-fill-press);
+        transform: scale(0.92);
+        transition-duration: 0s;
+      }
+      .controls svg {
+        width: 14px;
+        height: 14px;
+        fill: var(--n-ink);
+      }
+      .shelf.over {
+        background: var(--n-fill-press);
+        box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.35);
+      }
+      .shelf-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .shelf-empty {
+        height: 98px;
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+        color: var(--n-ink-3);
+        border: 1px dashed rgba(255, 255, 255, 0.14);
+        border-radius: 10px;
+      }
+      .nrow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 5px 4px;
+        border-radius: 6px;
+        font-size: 12px;
+        color: var(--n-ink-2);
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .nrow + .nrow {
+        box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.08);
+      }
+      .nrow.new {
+        animation: land 0.45s var(--settle);
+      }
+      @keyframes land {
+        from {
+          background: var(--n-fill-press);
+          transform: translateY(-4px);
+          opacity: 0;
+        }
+      }
+      button.nrow:hover {
+        background: var(--n-fill-hover);
+        color: var(--n-ink);
+      }
+      button.nrow:active {
+        background: var(--n-fill-press);
+      }
+      button.nrow.copied {
+        color: var(--n-positive);
+      }
+      .ico {
+        width: 16px;
+        height: 20px;
+        flex: none;
+        border-radius: 3px;
+        background: var(--kind, #9aa);
+      }
+
+      .file {
+        position: absolute;
+        z-index: 4;
+        width: 88px;
+        display: grid;
+        justify-items: center;
+        gap: 6px;
+        font-size: 11.5px;
+        color: #fff;
+        text-align: center;
+        cursor: grab;
+        touch-action: none;
+        transition: opacity 0.25s ease;
+      }
+      .file .doc {
+        width: 46px;
+        height: 56px;
+        border-radius: 6px;
+        background: #f5f4f0;
+        position: relative;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        transition:
+          box-shadow 0.2s,
+          transform 0.15s var(--settle);
+      }
+      .file .doc::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 12px;
+        height: 12px;
+        background: linear-gradient(
+          225deg,
+          rgba(0, 0, 0, 0.18) 50%,
+          #dcd9d0 50%
+        );
+        border-bottom-left-radius: 3px;
+      }
+      .file .doc b {
+        position: absolute;
+        left: 4px;
+        right: 4px;
+        bottom: 6px;
+        border-radius: 3px;
+        background: var(--kind);
+        color: #fff;
+        font: 600 8px/14px var(--mono);
+        letter-spacing: 0.04em;
+      }
+      .file span {
+        padding: 1px 6px;
+        border-radius: 4px;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+      }
+      .file:focus-visible {
+        outline: none;
+      }
+      .file:focus-visible span {
+        background: #2f63d8;
+        text-shadow: none;
+      }
+      .file.lift {
+        cursor: grabbing;
+        z-index: 10;
+      }
+      .file.lift .doc {
+        transform: scale(1.06);
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.45);
+      }
+      /* Dropped: the file shrinks into the shelf as it flies, and fades near the end. */
+      .file.gone {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease 0.14s;
+      }
+      .file.gone .doc {
+        transform: scale(0.35);
+        transition: transform 0.35s var(--ease-out);
+      }
+      .file.gone span {
+        opacity: 0;
+        transition: opacity 0.1s ease;
+      }
+      .f1 {
+        left: 5%;
+        top: 96px;
+      }
+      .f2 {
+        left: 5%;
+        top: 210px;
+      }
+      .f3 {
+        right: 5%;
+        top: 160px;
+      }
+      .hint {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 16px;
+        text-align: center;
+        pointer-events: none;
+        font: 500 12px var(--mono);
+        color: rgba(255, 255, 255, 0.8);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        transition: opacity 0.3s;
+      }
+
+      .demo-bar {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px 24px;
+        margin-top: 20px;
+      }
+      .demo-bar p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--muted-foreground);
+        max-width: 52ch;
+      }
+      .range {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font: 500 14px var(--sans);
+      }
+      .range output {
+        font: 500 13px var(--mono);
+        color: var(--muted-foreground);
+        min-width: 56px;
+        font-variant-numeric: tabular-nums;
+      }
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 170px;
+        height: 22px;
+        background: transparent;
+        cursor: pointer;
+        margin: 0;
+      }
+      input[type="range"]::-webkit-slider-runnable-track {
+        height: 4px;
+        border-radius: 2px;
+        background: linear-gradient(
+          90deg,
+          var(--primary) var(--p, 25%),
+          var(--input) var(--p, 25%)
+        );
+      }
+      input[type="range"]::-moz-range-track {
+        height: 4px;
+        border-radius: 2px;
+        background: var(--input);
+      }
+      input[type="range"]::-moz-range-progress {
+        height: 4px;
+        border-radius: 2px;
+        background: var(--primary);
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        margin-top: -7px;
+        border-radius: 50%;
+        background: #fff;
+        border: 1px solid var(--input);
+        box-shadow: var(--shadow-md);
+        transition: transform 0.1s;
+      }
+      input[type="range"]:active::-webkit-slider-thumb {
+        transform: scale(1.15);
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #fff;
+        border: 1px solid var(--input);
+      }
+
+      /* ================= Budget ================= */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+      }
+      .stat {
+        padding: 24px;
+      }
+      .stat .k {
+        font: 500 13px var(--sans);
+        color: var(--muted-foreground);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .stat .v {
+        margin-top: 18px;
+        font: 500 clamp(32px, 4vw, 42px)/1 var(--mono);
+        letter-spacing: -0.04em;
+        font-variant-numeric: tabular-nums;
+      }
+      .stat .v small {
+        font-size: 0.45em;
+        letter-spacing: 0;
+        color: var(--muted-foreground);
+        margin-left: 4px;
+      }
+      .stat .d {
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--subtle);
+      }
+      .note {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        font-size: 14px;
+        color: var(--muted-foreground);
+        max-width: 70ch;
+      }
+      .note .icon {
+        margin-top: 3px;
+        color: var(--success);
+      }
+
+      /* ================= Displays ================= */
+      .sim {
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr);
+        overflow: hidden;
+      }
+      .sim-controls {
+        padding: 28px;
+        border-right: 1px solid var(--border);
+        display: grid;
+        gap: 24px;
+        align-content: start;
+      }
+      .sim-controls .group {
+        display: grid;
+        gap: 10px;
+      }
+      .sim-controls .group > span {
+        font: 500 12px var(--mono);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--muted-foreground);
+      }
+      .sim-stage {
+        padding: 28px;
+        display: grid;
+        gap: 24px;
+        background: var(--muted);
+        align-content: center;
+        min-height: 340px;
+      }
+      .desk {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 18px;
+        flex-wrap: wrap;
+        min-height: 190px;
+      }
+      .disp {
+        display: grid;
+        justify-items: center;
+        gap: 0;
+      }
+      .disp.entering {
+        animation: pop 0.55s var(--ease-out) backwards;
+      }
+      .disp.ghost {
+        pointer-events: none;
+        animation: unpop 0.25s var(--ease-out) forwards;
+      }
+      @keyframes pop {
+        from {
+          opacity: 0;
+          transform: translateY(12px) scale(0.94);
+        }
+      }
+      @keyframes unpop {
+        to {
+          opacity: 0;
+          transform: translateY(10px) scale(0.94);
+        }
+      }
+      .disp .scr {
+        position: relative;
+        border-radius: 8px;
+        border: 5px solid #111;
+        overflow: hidden;
+        background: linear-gradient(
+          180deg,
+          var(--wall-sky),
+          var(--wall-mid) 80%,
+          var(--wall-ground)
+        );
+        transition:
+          box-shadow 0.2s ease,
+          height 0.45s var(--ease-in-out),
+          border-width 0.45s var(--ease-in-out),
+          background-color 0.3s ease;
+      }
+      .disp.ext .scr {
+        width: 200px;
+        height: 122px;
+      }
+      .disp.mac .scr {
+        width: 150px;
+        height: 96px;
+        border-width: 4px;
+      }
+      .disp .mb {
+        height: 8px;
+        background: rgba(0, 0, 0, 0.18);
+        transition: background-color 0.3s ease;
+      }
+      .disp.has-menubar .mb {
+        background: rgba(0, 0, 0, 0.35);
+      }
+      .disp .hw {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 32px;
+        height: 7px;
+        transform: translateX(-50%);
+        background: #000;
+        border-radius: 0 0 3px 3px;
+      }
+      .disp .pnl {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 78px;
+        height: 30px;
+        transform: translateX(-50%) scale(0.3);
+        background: #000;
+        border-radius: 0 0 9px 9px;
+        opacity: 0;
+        transform-origin: top center;
+        transition:
+          transform 0.25s var(--ease-out),
+          opacity 0.15s ease;
+        display: flex;
+        gap: 4px;
+        padding: 10px 7px 6px;
+      }
+      .disp .pnl i {
+        flex: 1;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.14);
+      }
+      /* Appearing is slower than disappearing, and waits for a lid to finish closing, so a
+         panel visibly hands over from one display to another. */
+      .disp.on .pnl {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+        transition:
+          transform 0.5s var(--ease-out) 0.12s,
+          opacity 0.2s ease 0.12s;
+      }
+      .disp .pnl i {
+        transform: scaleY(0.4);
+        opacity: 0;
+        transition:
+          transform 0.2s var(--ease-out),
+          opacity 0.15s ease;
+      }
+      .disp.on .pnl i {
+        transform: none;
+        opacity: 1;
+        transition:
+          transform 0.4s var(--ease-out) 0.3s,
+          opacity 0.3s ease 0.3s;
+      }
+      .disp.on .pnl i:nth-child(2) {
+        transition-delay: 0.34s;
+      }
+      .disp.on .pnl i:nth-child(3) {
+        transition-delay: 0.38s;
+      }
+      .disp.chooseable {
+        cursor: pointer;
+      }
+      .disp.chooseable .scr {
+        box-shadow: 0 0 0 2px transparent;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .disp.chooseable:hover .scr {
+          box-shadow: 0 0 0 2px var(--subtle);
+        }
+      }
+      .disp.chosen .scr {
+        box-shadow: 0 0 0 2px var(--success);
+      }
+      .disp .stand {
+        width: 34px;
+        height: 16px;
+        background: linear-gradient(#2a2a2e, #1a1a1d);
+      }
+      .disp .foot {
+        width: 70px;
+        height: 4px;
+        background: #1a1a1d;
+        border-radius: 3px;
+      }
+      .disp .base {
+        width: 172px;
+        height: 6px;
+        background: linear-gradient(#3a3a3f, #1a1a1d);
+        border-radius: 0 0 8px 8px;
+      }
+      .disp.closed .scr {
+        height: 8px;
+        background: #2a2a2e;
+        border-width: 0;
+        border-radius: 6px 6px 0 0;
+      }
+      .disp .hw,
+      .disp .mb {
+        transition: opacity 0.2s ease;
+      }
+      .disp.closed .hw,
+      .disp.closed .mb {
+        opacity: 0;
+      }
+      .disp .cap {
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--muted-foreground);
+      }
+      .sim-out {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        font-size: 15px;
+      }
+      .sim-out .icon {
+        color: var(--success);
+        margin-top: 3px;
+      }
+      .sim-out strong {
+        font-weight: 600;
+      }
+
+      /* ================= Features ================= */
+      .features {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      .feature {
+        padding: 28px;
+        display: grid;
+        gap: 12px;
+        align-content: start;
+        transition:
+          transform 0.3s var(--ease-out),
+          box-shadow 0.3s ease;
+      }
+      @media (hover: hover) and (pointer: fine) {
+        .feature:hover {
+          transform: translateY(-3px);
+          box-shadow: var(--shadow-md);
+        }
+        .feature:hover .ficon {
+          transform: rotate(-6deg) scale(1.06);
+        }
+      }
+      .feature .ficon {
+        transition: transform 0.4s var(--ease-out);
+      }
+      .feature .ficon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        background: var(--primary);
+        color: var(--primary-foreground);
+      }
+      .feature h3 {
+        margin: 6px 0 0;
+        font-size: 19px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+      }
+      .feature p {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: 15px;
+      }
+      .extras {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      .extra {
+        display: flex;
+        gap: 14px;
+        padding: 20px 24px;
+        align-items: flex-start;
+      }
+      .extra .icon {
+        margin-top: 3px;
+        color: var(--muted-foreground);
+      }
+      .extra b {
+        display: block;
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .extra span {
+        font-size: 14px;
+        color: var(--muted-foreground);
+      }
+
+      /* ================= FAQ ================= */
+      .faq-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        gap: 56px;
+      }
+      .faq {
+        border-top: 1px solid var(--border);
+      }
+      .faq details {
+        border-bottom: 1px solid var(--border);
+      }
+      .faq summary {
+        list-style: none;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 0;
+        font-weight: 600;
+        font-size: 17px;
+        letter-spacing: -0.01em;
+      }
+      .faq summary::-webkit-details-marker {
+        display: none;
+      }
+      .faq summary .icon {
+        transition: transform 0.35s var(--ease-out);
+        color: var(--muted-foreground);
+      }
+      .faq details[open] summary .icon {
+        transform: rotate(45deg);
+      }
+      .faq summary:active .icon {
+        transform: scale(0.85);
+      }
+      .faq details[open] summary:active .icon {
+        transform: rotate(45deg) scale(0.85);
+      }
+      .faq details p {
+        margin: 0 0 20px;
+        color: var(--muted-foreground);
+        max-width: 60ch;
+      }
+      /* Open and close by height where supported (Chrome/Edge 131+, Safari 18.4+); elsewhere
+         the answer still fades in. */
+      .faq details::details-content {
+        block-size: 0;
+        overflow: hidden;
+        transition:
+          block-size 0.4s var(--ease-out),
+          content-visibility 0.4s allow-discrete;
+      }
+      .faq details[open]::details-content {
+        block-size: auto;
+      }
+      .faq details p {
+        opacity: 0;
+        transform: translateY(-4px);
+        transition:
+          opacity 0.2s ease,
+          transform 0.3s var(--ease-out);
+      }
+      .faq details[open] p {
+        opacity: 1;
+        transform: none;
+        transition-delay: 0.08s;
+      }
+      @starting-style {
+        .faq details[open] p {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+      }
+
+      footer {
+        border-top: 1px solid var(--border);
+        padding-block: 32px 48px;
+      }
+      footer .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        font-size: 14px;
+        color: var(--muted-foreground);
+      }
+
+      /* ================= Responsive ================= */
+      @media (max-width: 960px) {
+        .hero-grid,
+        .faq-grid {
+          grid-template-columns: 1fr;
+          gap: 40px;
+        }
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .features,
+        .extras {
+          grid-template-columns: 1fr;
+        }
+        .sim {
+          grid-template-columns: 1fr;
+        }
+        .sim-controls {
+          border-right: 0;
+          border-bottom: 1px solid var(--border);
+        }
+        .nav-links {
+          display: none;
+        }
+        .nav .container {
+          justify-content: space-between;
+        }
+        .screen {
+          height: 440px;
+        }
+        .f1,
+        .f2,
+        .f3 {
+          top: 270px;
+        }
+        .f1 {
+          left: 8%;
+        }
+        .f2 {
+          left: calc(50% - 44px);
+        }
+        .f3 {
+          right: 8%;
+        }
+        .hint {
+          bottom: 12px;
+        }
+        .section {
+          padding-block: 72px;
+        }
+      }
+      @media (max-width: 640px) {
+        .container {
+          padding-inline: 16px;
+        }
+        .hero {
+          padding-block: 40px 40px;
+        }
+        .join {
+          padding: 22px;
+        }
+        .join .row2 {
+          grid-template-columns: 1fr;
+        }
+        .panel {
+          grid-template-columns: 1.15fr 1fr;
+          padding-inline: 12px;
+          gap: 8px;
+        }
+        .panel .clip {
+          display: none;
+        }
+        .np .art {
+          width: 36px;
+          height: 36px;
+        }
+        .device {
+          padding: 8px 8px 0;
+          border-radius: 16px 16px 8px 8px;
+        }
+        .device-base {
+          margin-inline: -8px;
+        }
+        .menubar .left span:nth-child(n + 3),
+        .menubar .hide-s {
+          display: none;
+        }
+        .stats {
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+        .stat {
+          padding: 18px;
+        }
+        .disp.ext .scr {
+          width: 150px;
+          height: 92px;
+        }
+        .disp.mac .scr,
+        .disp.closed .scr {
+          width: 120px;
+        }
+        .disp.mac .scr {
+          height: 78px;
+        }
+        .disp .base {
+          width: 138px;
+        }
+        .sim-controls,
+        .sim-stage {
+          padding: 20px;
+        }
+        .demo-bar {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+      /* Reduced motion: drop movement, keep fades and colour changes that explain state. */
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        .hero .badge,
+        .hero h1,
+        .hero-sub,
+        .trust,
+        .hero .join,
+        .demo-wrap .device,
+        #join-body > *,
+        .disp.entering,
+        .field-error {
+          animation-name: fade-in;
+        }
+        .done .tick {
+          animation: none;
+        }
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+          }
+        }
+        .notch.playing .eq i {
+          animation: none;
+          transform: scaleY(0.6);
+        }
+        .tile,
+        .notch.open .tile,
+        .reveal.pending,
+        .faq details p {
+          transform: none;
+        }
+        .theme-toggle .icon,
+        .file.gone .doc,
+        .feature:hover,
+        .feature:hover .ficon {
+          transform: none !important;
+        }
+        .faq details::details-content {
+          transition: none;
+        }
+      }
+      @media (prefers-reduced-transparency: reduce) {
+        .nav {
+          background: var(--background);
+          -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Icon sprite (Lucide-style strokes, drawn inline so nothing loads from a CDN) -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="i-check" viewBox="0 0 24 24">
+        <path d="M20 6 9 17l-5-5" />
+      </symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4" />
+        <path
+          d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
+        />
+      </symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24">
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+      </symbol>
+      <symbol id="i-music" viewBox="0 0 24 24">
+        <path d="M9 18V5l12-2v13" />
+        <circle cx="6" cy="18" r="3" />
+        <circle cx="18" cy="16" r="3" />
+      </symbol>
+      <symbol id="i-tray" viewBox="0 0 24 24">
+        <path d="M22 12h-6l-2 3h-4l-2-3H2" />
+        <path
+          d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"
+        />
+      </symbol>
+      <symbol id="i-clip" viewBox="0 0 24 24">
+        <rect x="8" y="2" width="8" height="4" rx="1" />
+        <path
+          d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+        />
+      </symbol>
+      <symbol id="i-battery" viewBox="0 0 24 24">
+        <rect x="2" y="7" width="16" height="10" rx="2" />
+        <path d="M22 11v2" />
+        <path d="M6 11v2M10 11v2" />
+      </symbol>
+      <symbol id="i-sliders" viewBox="0 0 24 24">
+        <path
+          d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"
+        />
+      </symbol>
+      <symbol id="i-shield" viewBox="0 0 24 24">
+        <path
+          d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+        />
+      </symbol>
+      <symbol id="i-cpu" viewBox="0 0 24 24">
+        <rect x="5" y="5" width="14" height="14" rx="2" />
+        <rect x="9" y="9" width="6" height="6" />
+        <path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3" />
+      </symbol>
+      <symbol id="i-moon-z" viewBox="0 0 24 24">
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+      </symbol>
+      <symbol id="i-memory" viewBox="0 0 24 24">
+        <path d="M6 19v-3M10 19v-3M14 19v-3M18 19v-3" />
+        <rect x="2" y="6" width="20" height="10" rx="2" />
+      </symbol>
+      <symbol id="i-timer" viewBox="0 0 24 24">
+        <path d="M10 2h4M12 14l3-3" />
+        <circle cx="12" cy="14" r="8" />
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14" />
+      </symbol>
+      <symbol id="i-monitor" viewBox="0 0 24 24">
+        <rect x="2" y="3" width="20" height="14" rx="2" />
+        <path d="M8 21h8M12 17v4" />
+      </symbol>
+      <symbol id="i-info" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 16v-4M12 8h.01" />
+      </symbol>
+    </svg>
+
+    <header class="nav" id="nav">
+      <div class="container">
+        <a class="logo" href="#top" aria-label="Sill home"
+          ><span class="logo-mark" aria-hidden="true"></span>Sill</a
+        >
+        <nav class="nav-links" aria-label="Sections">
+          <a href="#demo">Demo</a>
+          <a href="#battery">Battery</a>
+          <a href="#displays">Displays</a>
+          <a href="#features">Features</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+        <div class="nav-actions">
+          <button
+            class="btn btn-ghost btn-icon theme-toggle"
+            type="button"
+            id="theme-toggle"
+            aria-label="Switch between light and dark theme"
+          >
+            <svg class="icon moon"><use href="#i-moon" /></svg>
+            <svg class="icon sun"><use href="#i-sun" /></svg>
+          </button>
+          <a class="btn btn-primary btn-sm" href="#join" data-join
+            >Join waitlist</a
+          >
+        </div>
+      </div>
+    </header>
+
+    <main id="top">
+      <!-- ================= Hero + the page's only form ================= -->
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <span class="badge"
+              ><span class="dot" aria-hidden="true"></span>Beta coming soon ·
+              macOS 14+</span
+            >
+            <h1>The notch app <span class="soft">that disappears.</span></h1>
+            <p class="hero-sub">
+              You tried a notch app. It ate your battery or broke when you
+              plugged in a monitor. Sill does media, files and clipboard
+              history, and neither of those things.
+            </p>
+            <ul class="trust">
+              <li>
+                <svg class="icon"><use href="#i-check" /></svg>Signed and
+                notarised by Apple
+              </li>
+              <li>
+                <svg class="icon"><use href="#i-check" /></svg>One-time purchase
+              </li>
+              <li>
+                <svg class="icon"><use href="#i-check" /></svg>7-day full trial
+              </li>
+            </ul>
+          </div>
+
+          <div class="card join" id="join" tabindex="-1">
+            <div id="join-body"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= Demo ================= -->
+      <section class="demo-wrap" id="demo" aria-labelledby="demo-title">
+        <div class="container">
+          <h2 class="sr-only" id="demo-title">Interactive demo</h2>
+          <div class="device">
+            <div class="screen" id="screen">
+              <div class="menubar" aria-hidden="true">
+                <div class="left">
+                  <span><b>Finder</b></span
+                  ><span>File</span><span>Edit</span><span>View</span
+                  ><span>Go</span><span>Window</span>
+                </div>
+                <div class="right">
+                  <span class="hide-s">Sat 19 Sep&nbsp;&nbsp;</span>9:41
+                </div>
+              </div>
+
+              <div
+                class="notch open playing"
+                id="notch"
+                tabindex="0"
+                role="button"
+                aria-expanded="true"
+                aria-label="Sill panel demo. Hover, click or press Enter to open and close."
+              >
+                <div class="pill" aria-hidden="true">
+                  <span class="mini-art"></span
+                  ><span class="eq"><i></i><i></i><i></i></span>
+                </div>
+                <div class="panel" id="panel">
+                  <div class="tile">
+                    <div class="np">
+                      <div class="art"></div>
+                      <div style="min-width: 0">
+                        <strong id="np-title">Weightless</strong
+                        ><em id="np-artist">Marconi Union</em>
+                      </div>
+                    </div>
+                    <div
+                      class="scrub"
+                      id="scrub"
+                      role="slider"
+                      tabindex="0"
+                      aria-label="Playback position"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                      aria-valuenow="38"
+                    >
+                      <div class="track">
+                        <span class="fill" id="scrub-fill"></span>
+                      </div>
+                    </div>
+                    <div class="times">
+                      <span id="t-now">3:12</span><span id="t-left">−5:16</span>
+                    </div>
+                    <div class="controls">
+                      <button
+                        type="button"
+                        id="prev"
+                        aria-label="Previous track"
+                      >
+                        <svg viewBox="0 0 24 24">
+                          <path d="M6 5h2v14H6zM20 5v14L9 12z" />
+                        </svg>
+                      </button>
+                      <button type="button" id="play" aria-label="Pause">
+                        <svg viewBox="0 0 24 24" id="play-ico">
+                          <path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" />
+                        </svg>
+                      </button>
+                      <button type="button" id="next" aria-label="Next track">
+                        <svg viewBox="0 0 24 24">
+                          <path d="M16 5h2v14h-2zM4 5v14l11-7z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="tile shelf" id="shelf">
+                    <h4>
+                      Shelf
+                      <button type="button" id="shelf-clear" hidden>
+                        Clear
+                      </button>
+                    </h4>
+                    <div class="shelf-empty" id="shelf-empty">
+                      Drop files here
+                    </div>
+                    <ul class="shelf-list" id="shelf-list"></ul>
+                  </div>
+                  <div class="tile clip">
+                    <h4>Clipboard</h4>
+                    <button
+                      type="button"
+                      class="nrow"
+                      data-copy="brew install --cask sill"
+                    >
+                      brew install --cask sill
+                    </button>
+                    <button
+                      type="button"
+                      class="nrow"
+                      data-copy="Meeting moved to 3pm"
+                    >
+                      Meeting moved to 3pm
+                    </button>
+                    <button type="button" class="nrow" data-copy="#5CDB78">
+                      #5CDB78
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="file f1"
+                data-name="Q3-invoice.pdf"
+                data-kind="#d9534f"
+                tabindex="0"
+                role="button"
+                aria-label="Q3-invoice.pdf. Press Enter to put it on the shelf."
+              >
+                <div class="doc" style="--kind: #d9534f"><b>PDF</b></div>
+                <span>Q3-invoice.pdf</span>
+              </div>
+              <div
+                class="file f2"
+                data-name="hero@2x.png"
+                data-kind="#3b82c4"
+                tabindex="0"
+                role="button"
+                aria-label="hero@2x.png. Press Enter to put it on the shelf."
+              >
+                <div class="doc" style="--kind: #3b82c4"><b>PNG</b></div>
+                <span>hero@2x.png</span>
+              </div>
+              <div
+                class="file f3"
+                data-name="notes.md"
+                data-kind="#6f8a65"
+                tabindex="0"
+                role="button"
+                aria-label="notes.md. Press Enter to put it on the shelf."
+              >
+                <div class="doc" style="--kind: #6f8a65"><b>MD</b></div>
+                <span>notes.md</span>
+              </div>
+
+              <div class="hint" id="hint" aria-hidden="true">
+                Hover the notch · drag a file onto it
+              </div>
+            </div>
+            <div class="device-base" aria-hidden="true"></div>
+          </div>
+
+          <div class="demo-bar">
+            <label class="range" for="delay"
+              >Open delay
+              <input
+                type="range"
+                id="delay"
+                min="0"
+                max="600"
+                step="50"
+                value="150"
+              />
+              <output for="delay" id="delay-out">150 ms</output>
+            </label>
+            <p>
+              You set how long Sill waits before opening. Moving the pointer up
+              to the menu bar won't open the panel by accident.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= Battery budget ================= -->
+      <section class="section" id="battery">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Performance budget</p>
+            <h2>Built to show up as zero in Activity Monitor.</h2>
+            <p>
+              Most notch apps check for changes on a timer, again and again,
+              forever. Sill runs no repeating timers while the notch is closed
+              and wakes only when something actually happens.
+            </p>
+          </div>
+          <div class="stats">
+            <div class="card stat">
+              <div class="k">
+                <svg class="icon"><use href="#i-cpu" /></svg>CPU while closed
+              </div>
+              <div class="v">≤0.1<small>%</small></div>
+              <div class="d">60-second average</div>
+            </div>
+            <div class="card stat">
+              <div class="k">
+                <svg class="icon"><use href="#i-moon-z" /></svg>Idle wake-ups
+              </div>
+              <div class="v">≈0</div>
+              <div class="d">No media playing</div>
+            </div>
+            <div class="card stat">
+              <div class="k">
+                <svg class="icon"><use href="#i-memory" /></svg>Memory
+              </div>
+              <div class="v">&lt;80<small>MB</small></div>
+              <div class="d">Steady state</div>
+            </div>
+            <div class="card stat">
+              <div class="k">
+                <svg class="icon"><use href="#i-timer" /></svg>Repeating timers
+              </div>
+              <div class="v">0</div>
+              <div class="d">While the notch is closed</div>
+            </div>
+          </div>
+          <p class="note">
+            <svg class="icon"><use href="#i-info" /></svg>These are the targets
+            every build is checked against on Apple silicon. At launch we'll
+            publish the Activity Monitor screenshot, not just the claim.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================= Displays ================= -->
+      <section class="section" id="displays" style="padding-top: 0">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Multi-display</p>
+            <h2>Plug in a monitor. Nothing breaks.</h2>
+            <p>
+              Each display gets its own panel, created and removed as screens
+              come and go. Try your setup.
+            </p>
+          </div>
+
+          <div class="card sim">
+            <div class="sim-controls">
+              <div class="group" role="group" aria-labelledby="g-mon">
+                <span id="g-mon">External monitors</span>
+                <div class="segmented" data-control="monitors">
+                  <button type="button" data-value="0" aria-pressed="false">
+                    None
+                  </button>
+                  <button type="button" data-value="1" aria-pressed="true">
+                    One
+                  </button>
+                  <button type="button" data-value="2" aria-pressed="false">
+                    Two
+                  </button>
+                </div>
+              </div>
+              <div class="group" role="group" aria-labelledby="g-mode">
+                <span id="g-mode">Show the panel on</span>
+                <div class="segmented" data-control="mode">
+                  <button
+                    type="button"
+                    data-value="builtin"
+                    aria-pressed="true"
+                  >
+                    Built-in
+                  </button>
+                  <button type="button" data-value="all" aria-pressed="false">
+                    All
+                  </button>
+                  <button
+                    type="button"
+                    data-value="chosen"
+                    aria-pressed="false"
+                  >
+                    Chosen
+                  </button>
+                </div>
+              </div>
+              <div class="group">
+                <span>MacBook</span>
+                <label class="switch"
+                  ><input type="checkbox" id="lid" role="switch" /> Lid
+                  closed</label
+                >
+              </div>
+            </div>
+            <div class="sim-stage">
+              <div class="desk" id="desk" aria-hidden="true"></div>
+              <div class="sim-out" role="status" aria-live="polite">
+                <svg class="icon"><use href="#i-check" /></svg
+                ><span id="sim-text"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= Features ================= -->
+      <section class="section" id="features" style="padding-top: 0">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">What's in v1</p>
+            <h2>The three things people actually use, done properly.</h2>
+          </div>
+          <div class="features">
+            <article class="card feature">
+              <span class="ficon"
+                ><svg class="icon"><use href="#i-music" /></svg
+              ></span>
+              <h3>Now Playing</h3>
+              <p>
+                Artwork, scrubber and controls for whatever's playing. When no
+                media is detected, the panel says so instead of showing an empty
+                space.
+              </p>
+            </article>
+            <article class="card feature">
+              <span class="ficon"
+                ><svg class="icon"><use href="#i-tray" /></svg
+              ></span>
+              <h3>File shelf</h3>
+              <p>
+                Drag files onto the notch, then drag them out anywhere. They
+                stay real files. Pin the ones you want to keep after a clear.
+              </p>
+            </article>
+            <article class="card feature">
+              <span class="ficon"
+                ><svg class="icon"><use href="#i-clip" /></svg
+              ></span>
+              <h3>Clipboard history</h3>
+              <p>
+                Text, images and files, searchable. Off until you turn it on,
+                and it skips anything copied from a password manager.
+              </p>
+            </article>
+          </div>
+          <div class="extras">
+            <div class="card extra">
+              <svg class="icon"><use href="#i-battery" /></svg>
+              <div>
+                <b>Charging at a glance</b
+                ><span>A quick peek when you plug in. No polling.</span>
+              </div>
+            </div>
+            <div class="card extra">
+              <svg class="icon"><use href="#i-sliders" /></svg>
+              <div>
+                <b>Hover you can tune</b
+                ><span
+                  >Open and close delays, plus a buffer zone below the menu
+                  bar.</span
+                >
+              </div>
+            </div>
+            <div class="card extra">
+              <svg class="icon"><use href="#i-shield" /></svg>
+              <div>
+                <b>Few permission prompts</b
+                ><span
+                  >Asked only when you first use the feature. Never Screen
+                  Recording.</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= FAQ ================= -->
+      <section class="section" id="faq" style="padding-top: 0">
+        <div class="container faq-grid">
+          <div class="section-head" style="margin: 0">
+            <p class="eyebrow">FAQ</p>
+            <h2>Questions before you sign up.</h2>
+            <p>
+              <a href="#join" data-join>Join the waitlist</a> and you'll hear
+              first when the beta opens.
+            </p>
+          </div>
+          <div class="faq">
+            <details>
+              <summary>
+                Which Macs does it work on?<svg class="icon">
+                  <use href="#i-plus" />
+                </svg>
+              </summary>
+              <p>
+                Any Mac on macOS 14 Sonoma or later. MacBooks with a notch get
+                the panel from the notch itself. Macs without one, and external
+                displays, get a panel in the same spot at the top of the screen.
+              </p>
+            </details>
+            <details>
+              <summary>
+                How much will it cost?<svg class="icon">
+                  <use href="#i-plus" />
+                </svg>
+              </summary>
+              <p>
+                A one-time purchase, no subscription, with a 7-day trial that
+                includes every feature. We'll announce the price before launch,
+                and people on the waitlist hear first.
+              </p>
+            </details>
+            <details>
+              <summary>
+                What permissions does it need?<svg class="icon">
+                  <use href="#i-plus" />
+                </svg>
+              </summary>
+              <p>
+                None to start. Sill asks for a permission only when you first
+                use the feature that needs it, and explains why. It never asks
+                for Screen Recording.
+              </p>
+            </details>
+            <details>
+              <summary>
+                Why not the Mac App Store?<svg class="icon">
+                  <use href="#i-plus" />
+                </svg>
+              </summary>
+              <p>
+                The App Store sandbox blocks some of what a notch app needs.
+                Sill is distributed directly, signed and notarised by Apple, so
+                it opens without Gatekeeper warnings, and updates arrive as soon
+                as they're ready.
+              </p>
+            </details>
+            <details>
+              <summary>
+                What happens to my email?<svg class="icon">
+                  <use href="#i-plus" />
+                </svg>
+              </summary>
+              <p>
+                We store your name and email only to tell you when the beta
+                opens and when Sill launches. No newsletters and no sharing. Ask
+                and we'll delete it.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <a class="logo" href="#top"
+          ><span class="logo-mark" aria-hidden="true"></span>Sill</a
+        >
+        <span
+          >Sill is a working name. Made for MacBooks, with or without a
+          notch.</span
+        >
+      </div>
+    </footer>
+
+    <template id="tpl-form">
+      <h2>Join the waitlist</h2>
+      <p class="lead">
+        Be first to try the beta. We'll email you twice: when it opens, and at
+        launch.
+      </p>
+      <form novalidate>
+        <div class="row2">
+          <div class="field">
+            <label class="label" for="name">Name</label>
+            <input
+              class="input"
+              id="name"
+              name="name"
+              type="text"
+              autocomplete="name"
+              placeholder="Ada Lovelace"
+              maxlength="100"
+              required
+              aria-describedby="name-error"
+            />
+            <p class="field-error" id="name-error" aria-live="polite"></p>
+          </div>
+          <div class="field">
+            <label class="label" for="email">Email</label>
+            <input
+              class="input"
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              placeholder="you@example.com"
+              maxlength="254"
+              required
+              aria-describedby="email-error"
+            />
+            <p class="field-error" id="email-error" aria-live="polite"></p>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label" for="tried"
+            >Used a notch app before? <em>Optional</em></label
+          >
+          <select class="select" id="tried" name="tried">
+            <option value="">Choose one</option>
+            <option>No, never</option>
+            <option>NotchNook</option>
+            <option>boring.notch</option>
+            <option>Alcove</option>
+            <option>DynamicLake</option>
+            <option>Another one</option>
+          </select>
+        </div>
+        <div class="hp" aria-hidden="true">
+          <label for="company">Leave this empty</label
+          ><input
+            id="company"
+            name="company"
+            tabindex="-1"
+            autocomplete="off"
+          />
+        </div>
+        <button class="btn btn-primary" type="submit">
+          <span class="spinner" aria-hidden="true"></span
+          ><span class="btn-label">Join the waitlist</span>
+        </button>
+        <p class="status" role="status" aria-live="polite"></p>
+        <p class="fine">No spam. Only beta and launch emails.</p>
+      </form>
+    </template>
+
+    <template id="tpl-done">
+      <div class="done">
+        <div class="tick">
+          <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+        </div>
+        <h2></h2>
+        <p></p>
+        <button type="button" class="link">Sign up someone else</button>
+      </div>
+    </template>
+
+    <script>
+      // Google Apps Script web app URL (ends in /exec). See site/README.md.
+      // Leave empty for preview mode: the form validates but nothing is sent, and the page says so.
+      const WAITLIST_ENDPOINT =
+        "https://script.google.com/macros/s/AKfycbwf9ODypoZ6XXeamRBP_YgSO3cNgrZ_F7P0ZhNBvfMZRHL3yCVjeRb8socannWmWNggow/exec";
+
+      const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const $ = (sel, root = document) => root.querySelector(sel);
+      const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+      const store = {
+        get(k) {
+          try {
+            return JSON.parse(localStorage.getItem(k));
+          } catch {
+            return null;
+          }
+        },
+        set(k, v) {
+          try {
+            localStorage.setItem(k, JSON.stringify(v));
+          } catch {}
+        },
+        del(k) {
+          try {
+            localStorage.removeItem(k);
+          } catch {}
+        },
+      };
+
+      /* ---------------- theme ---------------- */
+      // The new theme spreads out from the button in a circle; without View Transitions (or
+      // with reduced motion) colours cross-fade instead.
+      $("#theme-toggle").addEventListener("click", (e) => {
+        const root = document.documentElement;
+        const dark = root.dataset.theme
+          ? root.dataset.theme === "dark"
+          : matchMedia("(prefers-color-scheme: dark)").matches;
+        const apply = () => {
+          root.dataset.theme = dark ? "light" : "dark";
+          try {
+            localStorage.setItem("sill-theme", root.dataset.theme);
+          } catch {}
+        };
+        if (!document.startViewTransition || reduced) {
+          root.classList.add("theme-fade");
+          apply();
+          setTimeout(() => root.classList.remove("theme-fade"), 350);
+          return;
+        }
+        const b = e.currentTarget.getBoundingClientRect();
+        const x = b.left + b.width / 2,
+          y = b.top + b.height / 2;
+        const radius = Math.hypot(
+          Math.max(x, innerWidth - x),
+          Math.max(y, innerHeight - y),
+        );
+        document.startViewTransition(apply).ready.then(() => {
+          root.animate(
+            {
+              clipPath: [
+                `circle(0px at ${x}px ${y}px)`,
+                `circle(${radius}px at ${x}px ${y}px)`,
+              ],
+            },
+            {
+              duration: 600,
+              easing: "cubic-bezier(0.77, 0, 0.175, 1)",
+              pseudoElement: "::view-transition-new(root)",
+            },
+          );
+        });
+      });
+
+      /* ---------------- segmented controls: one sliding thumb ---------------- */
+      function placeThumb(seg, animate) {
+        const on = $('button[aria-pressed="true"]', seg);
+        const thumb = $(".thumb", seg);
+        if (!on || !thumb) return;
+        if (!animate) thumb.style.transition = "none";
+        thumb.style.width = on.offsetWidth + "px";
+        thumb.style.transform = `translate(${on.offsetLeft}px, ${on.offsetTop}px)`;
+        if (!animate) {
+          void thumb.offsetWidth;
+          thumb.style.transition = "";
+        }
+      }
+      $$(".segmented").forEach((seg) => {
+        const thumb = document.createElement("span");
+        thumb.className = "thumb";
+        thumb.setAttribute("aria-hidden", "true");
+        seg.prepend(thumb);
+        seg.classList.add("has-thumb");
+        placeThumb(seg, false);
+      });
+      addEventListener("resize", () =>
+        $$(".segmented").forEach((s) => placeThumb(s, false)),
+      );
+      // Web fonts change button widths once they load.
+      document.fonts?.ready.then(() =>
+        $$(".segmented").forEach((s) => placeThumb(s, false)),
+      );
+
+      /* ---------------- scroll reveal ---------------- */
+      // Only for content that starts below the fold; anything already on screen, or any
+      // browser without IntersectionObserver, just shows the page as is.
+      if (!reduced && "IntersectionObserver" in window) {
+        const groups = [
+          ...$$(".section-head"),
+          [...$$(".stat")],
+          $(".note"),
+          $(".sim"),
+          [...$$(".feature")],
+          [...$$(".extra")],
+          [...$$(".faq details")],
+        ];
+        const io = new IntersectionObserver(
+          (entries) =>
+            entries.forEach((en) => {
+              if (!en.isIntersecting) return;
+              const el = en.target;
+              el.classList.remove("pending");
+              io.unobserve(el);
+              // Hand the element back to its own transitions (e.g. card hover) once revealed.
+              setTimeout(
+                () => el.classList.remove("reveal"),
+                700 + parseInt(el.style.getPropertyValue("--d") || "0", 10),
+              );
+            }),
+          { rootMargin: "0px 0px -8% 0px" },
+        );
+        groups.forEach((g) => {
+          const els = (Array.isArray(g) ? g : [g]).filter(Boolean);
+          els.forEach((el, i) => {
+            if (el.getBoundingClientRect().top < innerHeight) return;
+            el.classList.add("reveal", "pending");
+            el.style.setProperty("--d", i * 60 + "ms");
+            io.observe(el);
+          });
+        });
+      }
+
+      /* ---------------- nav ---------------- */
+      const nav = $("#nav");
+      const onScroll = () => nav.classList.toggle("scrolled", scrollY > 8);
+      addEventListener("scroll", onScroll, { passive: true });
+      onScroll();
+
+      // Every "Join" link goes to the one form and puts the cursor in it.
+      $$("[data-join]").forEach((a) =>
+        a.addEventListener("click", (e) => {
+          e.preventDefault();
+          const card = $("#join");
+          card.scrollIntoView({
+            behavior: reduced ? "auto" : "smooth",
+            block: "center",
+          });
+          card.classList.remove("flash");
+          void card.offsetWidth;
+          card.classList.add("flash");
+          const input = $("input", card);
+          setTimeout(
+            () => (input || card).focus({ preventScroll: true }),
+            reduced ? 0 : 450,
+          );
+        }),
+      );
+
+      /* A critically damped spring by default: it starts from the current value and velocity,
+     so a new target mid-flight redirects the motion instead of restarting it. */
+      function spring(value, apply, { response = 0.36, damping = 1 } = {}) {
+        const s = {
+          value,
+          velocity: 0,
+          target: value,
+          raf: 0,
+          done: null,
+          response,
+          damping,
+        };
+        let last = 0;
+        function step(now) {
+          const dt = Math.min(0.032, (now - last) / 1000);
+          last = now;
+          const k = ((2 * Math.PI) / s.response) ** 2,
+            c = (4 * Math.PI * s.damping) / s.response;
+          for (let i = 0; i < 4; i++) {
+            const a = -k * (s.value - s.target) - c * s.velocity;
+            s.velocity += (a * dt) / 4;
+            s.value += (s.velocity * dt) / 4;
+          }
+          if (Math.abs(s.velocity) < 1 && Math.abs(s.value - s.target) < 0.5) {
+            s.value = s.target;
+            s.velocity = 0;
+            s.raf = 0;
+            apply(s.value);
+            const d = s.done;
+            s.done = null;
+            d && d();
+            return;
+          }
+          apply(s.value);
+          s.raf = requestAnimationFrame(step);
+        }
+        // `response`/`damping` retune the spring mid-flight without a jump: position and
+        // velocity carry over, only the pull toward the new target changes.
+        s.to = (target, { velocity, done, response, damping } = {}) => {
+          s.target = target;
+          s.done = done || null;
+          if (velocity !== undefined) s.velocity = velocity;
+          if (response) s.response = response;
+          if (damping) s.damping = damping;
+          if (reduced) {
+            cancelAnimationFrame(s.raf);
+            s.raf = 0;
+            s.value = target;
+            s.velocity = 0;
+            apply(target);
+            done && done();
+            return;
+          }
+          if (!s.raf) {
+            last = performance.now();
+            s.raf = requestAnimationFrame(step);
+          }
+        };
+        s.set = (v) => {
+          cancelAnimationFrame(s.raf);
+          s.raf = 0;
+          s.value = s.target = v;
+          s.velocity = 0;
+          apply(v);
+        };
+        return s;
+      }
+
+      /* ---------------- notch demo ---------------- */
+      const screen = $("#screen"),
+        notch = $("#notch"),
+        panel = $("#panel"),
+        hint = $("#hint");
+      const CLOSED = { w: 190, h: 30, r: 12 };
+      const openSize = () => ({
+        w: Math.min(640, screen.clientWidth - 20),
+        h: 210,
+        r: 26,
+      });
+      const w = spring(CLOSED.w, (v) => (notch.style.width = v + "px"));
+      const h = spring(CLOSED.h, (v) => (notch.style.height = v + "px"));
+      const r = spring(
+        CLOSED.r,
+        (v) => (notch.style.borderRadius = `0 0 ${v}px ${v}px`),
+      );
+      {
+        const t = openSize();
+        notch.style.setProperty("--open-w", t.w + "px");
+        w.set(t.w);
+        h.set(t.h);
+        r.set(t.r);
+      }
+      // Asymmetric: opening is a touch slower with a hint of overshoot so the panel feels
+      // like it arrives; closing is quicker and critically damped so it just gets out of the way.
+      const OPEN_SPRING = { response: 0.42, damping: 0.86 };
+      const CLOSE_SPRING = { response: 0.3, damping: 1 };
+      let isOpen = true,
+        pinned = false,
+        touched = false,
+        dragOpen = false,
+        openTimer = 0,
+        closeTimer = 0,
+        openDelay = 150;
+
+      function setOpen(open) {
+        clearTimeout(openTimer);
+        clearTimeout(closeTimer);
+        if (open === isOpen) return;
+        isOpen = open;
+        const t = open ? openSize() : CLOSED;
+        const feel = open ? OPEN_SPRING : CLOSE_SPRING;
+        w.to(t.w, feel);
+        h.to(t.h, feel);
+        r.to(t.r, feel);
+        notch.classList.toggle("open", open);
+        notch.setAttribute("aria-expanded", String(open));
+        panel.inert = !open;
+        syncProgressLoop();
+      }
+      function interacted() {
+        if (!touched) {
+          touched = true;
+          hint.style.opacity = "0";
+        }
+      }
+      function toggle() {
+        interacted();
+        if (!isOpen) {
+          pinned = true;
+          setOpen(true);
+        } else if (pinned) {
+          pinned = false;
+          setOpen(false);
+        } else pinned = true; // opened by hover: a click keeps it open
+      }
+      notch.addEventListener("pointerenter", (e) => {
+        if (e.pointerType !== "mouse") return;
+        clearTimeout(closeTimer);
+        if (!isOpen)
+          openTimer = setTimeout(() => {
+            interacted();
+            setOpen(true);
+          }, openDelay);
+      });
+      notch.addEventListener("pointerleave", (e) => {
+        if (e.pointerType !== "mouse") return;
+        clearTimeout(openTimer);
+        if (!pinned && !dragOpen)
+          closeTimer = setTimeout(() => setOpen(false), 250);
+      });
+      notch.addEventListener("click", (e) => {
+        if (!e.target.closest("button, .scrub, .nrow")) toggle();
+      });
+      notch.addEventListener("keydown", (e) => {
+        if (e.target !== notch) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggle();
+        }
+        if (e.key === "Escape") {
+          pinned = false;
+          setOpen(false);
+        }
+      });
+      addEventListener("resize", () => {
+        const ow = openSize().w;
+        notch.style.setProperty("--open-w", ow + "px");
+        if (isOpen) w.set(ow);
+      });
+      // Starts open so the first frame shows the panel, then gets out of the way.
+      setTimeout(() => {
+        if (!touched && !pinned && !notch.matches(":hover")) setOpen(false);
+      }, 2800);
+
+      const delay = $("#delay"),
+        delayOut = $("#delay-out");
+      function syncDelay() {
+        openDelay = +delay.value;
+        delayOut.textContent = openDelay + " ms";
+        delay.style.setProperty("--p", (openDelay / 600) * 100 + "%");
+      }
+      delay.addEventListener("input", syncDelay);
+      syncDelay();
+
+      /* ---------------- now playing ---------------- */
+      const tracks = [
+        {
+          title: "Weightless",
+          artist: "Marconi Union",
+          len: 488,
+          art: "linear-gradient(135deg,#d9a35b,#8f3f2f 55%,#2a1a2e)",
+        },
+        {
+          title: "Clair de Lune",
+          artist: "Claude Debussy",
+          len: 302,
+          art: "linear-gradient(160deg,#9fb8d6,#4d6d9a 50%,#1b2238)",
+        },
+        {
+          title: "Teardrop",
+          artist: "Massive Attack",
+          len: 330,
+          art: "linear-gradient(200deg,#e8e2d0,#b8a47e 45%,#3b3226)",
+        },
+      ];
+      let ti = 0,
+        pos = 192,
+        playing = true,
+        loop = 0,
+        lastTick = 0;
+      const fmt = (s) =>
+        `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+      const scrub = $("#scrub"),
+        fill = $("#scrub-fill");
+      const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
+      // dir: 1 = next, -1 = previous, 0 = no animation. Text slides in from the side you
+      // skipped toward; the artwork settles in; the progress bar glides back to the start.
+      function renderTrack(dir = 0) {
+        const t = tracks[ti];
+        $("#np-title").textContent = t.title;
+        $("#np-artist").textContent = t.artist;
+        notch.style.setProperty("--art", t.art);
+        if (dir && !reduced) {
+          const text = $("#np-title").parentElement;
+          text.animate(
+            [
+              {
+                opacity: 0,
+                transform: `translateX(${dir * 10}px)`,
+                filter: "blur(2px)",
+              },
+              { opacity: 1, transform: "none", filter: "blur(0)" },
+            ],
+            { duration: 320, easing: EASE_OUT },
+          );
+          $(".art", notch).animate(
+            [
+              { opacity: 0.4, transform: "scale(0.86)" },
+              { opacity: 1, transform: "none" },
+            ],
+            { duration: 420, easing: EASE_OUT },
+          );
+          fill.classList.add("jump");
+          setTimeout(() => fill.classList.remove("jump"), 400);
+        }
+        renderPos();
+      }
+      function renderPos() {
+        const t = tracks[ti];
+        fill.style.transform = `scaleX(${pos / t.len})`;
+        $("#t-now").textContent = fmt(pos);
+        $("#t-left").textContent = "−" + fmt(t.len - pos);
+        scrub.setAttribute("aria-valuenow", Math.round((pos / t.len) * 100));
+        scrub.setAttribute("aria-valuetext", `${fmt(pos)} of ${fmt(t.len)}`);
+      }
+      // The scrubber only advances while you can see it.
+      function syncProgressLoop() {
+        if (playing && isOpen && !loop) {
+          lastTick = performance.now();
+          loop = requestAnimationFrame(tick);
+        }
+        if ((!playing || !isOpen) && loop) {
+          cancelAnimationFrame(loop);
+          loop = 0;
+        }
+      }
+      function tick(now) {
+        pos += (now - lastTick) / 1000;
+        lastTick = now;
+        if (pos >= tracks[ti].len) {
+          ti = (ti + 1) % tracks.length;
+          pos = 0;
+          renderTrack();
+        }
+        renderPos();
+        loop = requestAnimationFrame(tick);
+      }
+      function setPlaying(p) {
+        playing = p;
+        notch.classList.toggle("playing", p);
+        $("#play").setAttribute("aria-label", p ? "Pause" : "Play");
+        $("#play-ico").innerHTML = p
+          ? '<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/>'
+          : '<path d="M7 4.5v15L19.5 12z"/>';
+        if (!reduced)
+          $("#play-ico").animate(
+            [
+              { transform: "scale(0.5)", opacity: 0 },
+              { transform: "none", opacity: 1 },
+            ],
+            { duration: 220, easing: EASE_OUT },
+          );
+        syncProgressLoop();
+      }
+      $("#play").addEventListener("click", () => {
+        interacted();
+        setPlaying(!playing);
+      });
+      $("#next").addEventListener("click", () => {
+        interacted();
+        ti = (ti + 1) % tracks.length;
+        pos = 0;
+        renderTrack(1);
+      });
+      $("#prev").addEventListener("click", () => {
+        interacted();
+        // Like a real player: early in the song goes back a track, otherwise restarts it.
+        const changes = pos <= 3;
+        if (changes) ti = (ti + tracks.length - 1) % tracks.length;
+        pos = 0;
+        if (changes) renderTrack(-1);
+        else {
+          fill.classList.add("jump");
+          setTimeout(() => fill.classList.remove("jump"), 400);
+          renderPos();
+        }
+      });
+      function scrubTo(e) {
+        const rect = scrub.getBoundingClientRect();
+        pos =
+          Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) *
+          tracks[ti].len;
+        renderPos();
+      }
+      scrub.addEventListener("pointerdown", (e) => {
+        interacted();
+        scrub.setPointerCapture(e.pointerId);
+        scrub.classList.add("active");
+        scrubTo(e);
+      });
+      scrub.addEventListener("pointermove", (e) => {
+        if (scrub.hasPointerCapture(e.pointerId)) scrubTo(e);
+      });
+      scrub.addEventListener("pointerup", () =>
+        scrub.classList.remove("active"),
+      );
+      scrub.addEventListener("keydown", (e) => {
+        const d = e.key === "ArrowRight" ? 10 : e.key === "ArrowLeft" ? -10 : 0;
+        if (d) {
+          e.preventDefault();
+          pos = Math.max(0, Math.min(tracks[ti].len - 1, pos + d));
+          renderPos();
+        }
+      });
+      renderTrack();
+
+      /* ---------------- clipboard ---------------- */
+      $$("button.nrow[data-copy]").forEach((row) => {
+        row.addEventListener("click", async () => {
+          interacted();
+          const text = row.dataset.copy;
+          try {
+            await navigator.clipboard.writeText(text);
+            row.textContent = "Copied";
+          } catch {
+            row.textContent = "Copy not allowed here";
+          }
+          row.classList.add("copied");
+          setTimeout(() => {
+            row.textContent = text;
+            row.classList.remove("copied");
+          }, 1200);
+        });
+      });
+
+      /* ---------------- shelf: drag files from the desktop onto the notch ---------------- */
+      const shelf = $("#shelf"),
+        shelfList = $("#shelf-list"),
+        shelfEmpty = $("#shelf-empty"),
+        shelfClear = $("#shelf-clear");
+      const within = (x, y, rect, pad = 0) =>
+        x >= rect.left - pad &&
+        x <= rect.right + pad &&
+        y >= rect.top - pad &&
+        y <= rect.bottom + pad;
+
+      function addToShelf(file) {
+        const li = document.createElement("li");
+        li.className = "nrow new";
+        li.innerHTML = `<span class="ico" style="--kind:${file.dataset.kind}"></span>`;
+        li.append(file.dataset.name);
+        shelfList.prepend(li);
+        shelfEmpty.hidden = true;
+        shelfClear.hidden = false;
+      }
+      // Files leave the shelf the way they came in: from the shelf back to their spot.
+      shelfClear.addEventListener("click", () => {
+        shelfList.textContent = "";
+        shelfEmpty.hidden = false;
+        shelfClear.hidden = true;
+        $$(".file.gone").forEach((f, i) => {
+          setTimeout(
+            () => {
+              f.classList.remove("gone");
+              f._x.to(0, { velocity: 0 });
+              f._y.to(0, { velocity: 0 });
+            },
+            reduced ? 0 : i * 70,
+          );
+        });
+      });
+      // Past an edge the file follows less and less, instead of stopping dead or vanishing.
+      const rubberband = (over, dim, c = 0.55) =>
+        (over * dim * c) / (dim + c * Math.abs(over));
+      const clampSoft = (v, min, max, dim) =>
+        v < min
+          ? min - rubberband(min - v, dim)
+          : v > max
+            ? max + rubberband(v - max, dim)
+            : v;
+
+      $$(".file").forEach((file) => {
+        const place = () =>
+          (file.style.transform = `translate(${file._x.value}px, ${file._y.value}px)`);
+        file._x = spring(0, place, { response: 0.4, damping: 0.8 });
+        file._y = spring(0, place, { response: 0.4, damping: 0.8 });
+        let drag = null;
+
+        function nearNotch(x, y) {
+          const rect = notch.getBoundingClientRect();
+          return { near: within(x, y, rect, 80), over: within(x, y, rect, 8) };
+        }
+        function accept(vx, vy) {
+          const s = shelf.getBoundingClientRect(),
+            f = file.getBoundingClientRect();
+          const dx = s.left + s.width / 2 - (f.left + f.width / 2),
+            dy = s.top + s.height / 2 - (f.top + f.height / 2);
+          file.classList.add("gone");
+          let settled = 0;
+          const land = () => {
+            if (++settled === 2) addToShelf(file);
+          };
+          file._x.to(file._x.value + dx, { velocity: vx, done: land });
+          file._y.to(file._y.value + dy, { velocity: vy, done: land });
+        }
+
+        file.addEventListener("pointerdown", (e) => {
+          if (e.button !== 0 || file.classList.contains("gone")) return;
+          interacted();
+          file.setPointerCapture(e.pointerId);
+          file.classList.add("lift");
+          // Freeze wherever it is right now (it may be springing home) and track 1:1 from the grab point.
+          file._x.set(file._x.value);
+          file._y.set(file._y.value);
+          // Allowed translate range = keep the whole file inside the screen.
+          const f = file.getBoundingClientRect(),
+            sc = screen.getBoundingClientRect();
+          drag = {
+            sx: e.clientX - file._x.value,
+            sy: e.clientY - file._y.value,
+            hist: [{ x: e.clientX, y: e.clientY, t: e.timeStamp }],
+            minX: file._x.value + sc.left - f.left,
+            maxX: file._x.value + sc.right - f.right,
+            minY: file._y.value + sc.top - f.top,
+            maxY: file._y.value + sc.bottom - f.bottom,
+            dimX: sc.width,
+            dimY: sc.height,
+          };
+        });
+        file.addEventListener("pointermove", (e) => {
+          if (!drag) return;
+          file._x.set(
+            clampSoft(e.clientX - drag.sx, drag.minX, drag.maxX, drag.dimX),
+          );
+          file._y.set(
+            clampSoft(e.clientY - drag.sy, drag.minY, drag.maxY, drag.dimY),
+          );
+          drag.hist.push({ x: e.clientX, y: e.clientY, t: e.timeStamp });
+          if (drag.hist.length > 6) drag.hist.shift();
+          const { near, over } = nearNotch(e.clientX, e.clientY);
+          // Open toward the file as it approaches, so the drop target announces itself.
+          if (near && !isOpen) {
+            dragOpen = true;
+            setOpen(true);
+          }
+          notch.classList.toggle("target", near);
+          shelf.classList.toggle("over", over);
+        });
+        function release(e, cancelled) {
+          if (!drag) return;
+          const a = drag.hist[0],
+            b = drag.hist[drag.hist.length - 1],
+            dt = Math.max(1, b.t - a.t) / 1000;
+          const vx = (b.x - a.x) / dt,
+            vy = (b.y - a.y) / dt;
+          drag = null;
+          file.classList.remove("lift");
+          notch.classList.remove("target");
+          shelf.classList.remove("over");
+          const { over } = nearNotch(e.clientX, e.clientY);
+          if (over && !cancelled) accept(vx, vy);
+          else {
+            file._x.to(0, { velocity: vx });
+            file._y.to(0, { velocity: vy });
+          }
+          if (dragOpen) {
+            dragOpen = false;
+            if (!pinned)
+              closeTimer = setTimeout(() => setOpen(false), over ? 1400 : 300);
+          }
+        }
+        file.addEventListener("pointerup", (e) => release(e, false));
+        file.addEventListener("pointercancel", (e) => release(e, true));
+        file.addEventListener("keydown", (e) => {
+          if (
+            (e.key === "Enter" || e.key === " ") &&
+            !file.classList.contains("gone")
+          ) {
+            e.preventDefault();
+            interacted();
+            pinned = true;
+            setOpen(true);
+            setTimeout(() => accept(0, 0), reduced ? 0 : 250);
+          }
+        });
+      });
+
+      /* ---------------- display simulator ----------------
+     Mirrors docs/01-ARCHITECTURE.md: one panel per display, preference built-in only (default) /
+     all / chosen, and the clamshell fallback to the menu-bar display (ADR 2026-09-19). */
+      const sim = {
+        monitors: 1,
+        mode: "builtin",
+        lid: false,
+        chosen: new Set(["ext1"]),
+      };
+      const desk = $("#desk"),
+        simText = $("#sim-text"),
+        lid = $("#lid");
+
+      function simDisplays() {
+        const list = [
+          { id: "mac", kind: "mac", name: "MacBook", closed: sim.lid },
+        ];
+        for (let i = 1; i <= sim.monitors; i++)
+          list.push({
+            id: "ext" + i,
+            kind: "ext",
+            name: sim.monitors > 1 ? `Monitor ${i}` : "Monitor",
+          });
+        const active = list.filter((d) => !d.closed);
+        const menuBar = active[0];
+        let on = [],
+          fallback = false;
+        if (sim.mode === "all") on = active;
+        else if (sim.mode === "builtin") {
+          on = active.filter((d) => d.kind === "mac");
+          if (!on.length) {
+            on = [menuBar];
+            fallback = true;
+          }
+        } else {
+          on = active.filter((d) => sim.chosen.has(d.id));
+          if (!on.length) {
+            on = [menuBar];
+            fallback = true;
+          }
+        }
+        return {
+          list,
+          active,
+          menuBar,
+          on: new Set(on.map((d) => d.id)),
+          fallback,
+        };
+      }
+
+      // Displays are kept and updated in place (never rebuilt), so the panel visibly moves
+      // between them. New displays pop in, removed ones fade out where they stood, and the
+      // rest slide to their new positions (FLIP).
+      function makeDisplay(d) {
+        const el = document.createElement("div");
+        el.dataset.id = d.id;
+        el.innerHTML =
+          `<div class="scr"><div class="mb"></div>${d.kind === "mac" ? '<div class="hw"></div>' : ""}<div class="pnl"><i></i><i></i><i></i></div></div>` +
+          (d.kind === "ext"
+            ? '<div class="stand"></div><div class="foot"></div>'
+            : '<div class="base"></div>') +
+          '<div class="cap"></div>';
+        el.addEventListener("animationend", (e) => {
+          if (e.animationName === "pop") el.classList.remove("entering");
+        });
+        return el;
+      }
+      let simRendered = false;
+      function renderSim() {
+        if (sim.monitors === 0 && sim.lid) sim.lid = false;
+        lid.checked = sim.lid;
+        lid.disabled = sim.monitors === 0;
+        const { list, menuBar, on, fallback } = simDisplays();
+
+        const live = [...desk.children].filter(
+          (c) => !c.classList.contains("ghost"),
+        );
+        const before = new Map(
+          live.map((c) => [c.dataset.id, c.getBoundingClientRect()]),
+        );
+        const deskRect = desk.getBoundingClientRect();
+        const existing = new Map(live.map((c) => [c.dataset.id, c]));
+        const ids = new Set(list.map((d) => d.id));
+
+        // Removed displays: freeze where they are and fade out without holding their slot.
+        existing.forEach((el, id) => {
+          if (ids.has(id)) return;
+          existing.delete(id);
+          if (reduced) return el.remove();
+          const r = before.get(id);
+          el.classList.remove("entering");
+          el.classList.add("ghost");
+          Object.assign(el.style, {
+            position: "absolute",
+            left: r.left - deskRect.left + "px",
+            top: r.top - deskRect.top + "px",
+            width: r.width + "px",
+          });
+          el.addEventListener("animationend", () => el.remove(), {
+            once: true,
+          });
+        });
+
+        const els = list.map((d) => {
+          let el = existing.get(d.id);
+          const fresh = !el;
+          if (fresh) el = makeDisplay(d);
+          el.className =
+            `disp ${d.kind}` +
+            (fresh && simRendered ? " entering" : "") +
+            (!fresh && el.classList.contains("entering") ? " entering" : "") +
+            (d.closed ? " closed" : "") +
+            (on.has(d.id) ? " on" : "") +
+            (d === menuBar ? " has-menubar" : "") +
+            (sim.mode === "chosen" && !d.closed ? " chooseable" : "") +
+            (sim.mode === "chosen" && sim.chosen.has(d.id) && !d.closed
+              ? " chosen"
+              : "");
+          $(".cap", el).textContent = d.name + (d.closed ? " (lid closed)" : "");
+          return el;
+        });
+
+        // Put them in order without re-inserting nodes that are already in place
+        // (re-inserting would cancel their running transitions).
+        let ref = desk.firstElementChild;
+        const skipGhosts = (n) => {
+          while (n && n.classList.contains("ghost")) n = n.nextElementSibling;
+          return n;
+        };
+        ref = skipGhosts(ref);
+        els.forEach((el) => {
+          if (el === ref) ref = skipGhosts(ref.nextElementSibling);
+          else desk.insertBefore(el, ref);
+        });
+
+        if (!reduced)
+          els.forEach((el) => {
+            const b = before.get(el.dataset.id);
+            if (!b || el.classList.contains("entering")) return;
+            const dx = b.left - el.getBoundingClientRect().left;
+            if (Math.abs(dx) > 0.5)
+              el.animate(
+                [{ transform: `translateX(${dx}px)` }, { transform: "none" }],
+                { duration: 500, easing: EASE_OUT },
+              );
+          });
+        const names = list.filter((d) => on.has(d.id)).map((d) => d.name);
+        const joined =
+          names.length > 1
+            ? names.slice(0, -1).join(", ") + " and " + names.at(-1)
+            : names[0];
+        let msg = `Panel on <strong>${joined}</strong>.`;
+        if (sim.mode === "builtin" && !fallback)
+          msg += sim.monitors
+            ? " Your monitors stay clear, which is the default."
+            : " The default setup.";
+        if (sim.mode === "all")
+          msg +=
+            " Each display gets its own panel, so none of them break when you plug in or unplug.";
+        if (sim.mode === "chosen" && !fallback)
+          msg += " Click a display to add or remove it.";
+        if (fallback)
+          msg +=
+            sim.mode === "chosen"
+              ? " None of your chosen displays is available, so the panel moves to the display with the menu bar instead of disappearing."
+              : " The MacBook's lid is closed, so the panel moves to the display with the menu bar instead of disappearing.";
+        if (simText.innerHTML !== msg) {
+          simText.innerHTML = msg;
+          if (simRendered && !reduced)
+            simText.animate(
+              [
+                { opacity: 0, filter: "blur(2px)", transform: "translateY(3px)" },
+                { opacity: 1, filter: "blur(0)", transform: "none" },
+              ],
+              { duration: 280, easing: EASE_OUT },
+            );
+        }
+        simRendered = true;
+      }
+      $$(".segmented").forEach((seg) =>
+        seg.addEventListener("click", (e) => {
+          const b = e.target.closest("button");
+          if (!b) return;
+          $$("button", seg).forEach((x) =>
+            x.setAttribute("aria-pressed", String(x === b)),
+          );
+          placeThumb(seg, true);
+          const v = b.dataset.value;
+          if (seg.dataset.control === "monitors") sim.monitors = +v;
+          else sim.mode = v;
+          renderSim();
+        }),
+      );
+      lid.addEventListener("change", () => {
+        sim.lid = lid.checked;
+        renderSim();
+      });
+      desk.addEventListener("click", (e) => {
+        const d = e.target.closest(".disp.chooseable");
+        if (!d) return;
+        sim.chosen.has(d.dataset.id)
+          ? sim.chosen.delete(d.dataset.id)
+          : sim.chosen.add(d.dataset.id);
+        renderSim();
+      });
+      renderSim();
+
+      /* ---------------- waitlist form (the only one on the page) ---------------- */
+      const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const params = new URLSearchParams(location.search);
+      const joinBody = $("#join-body");
+      const joinCard = $("#join");
+
+      // Swap the card's content and let its height glide to the new size instead of jumping.
+      let morphing = null;
+      function morphCard(swap) {
+        const from = joinCard.offsetHeight;
+        morphing?.cancel();
+        swap();
+        const to = joinCard.offsetHeight;
+        if (reduced || !joinBody.dataset.ready || from === to) return;
+        joinCard.style.overflow = "hidden";
+        morphing = joinCard.animate(
+          [{ height: from + "px" }, { height: to + "px" }],
+          { duration: 420, easing: "cubic-bezier(0.77, 0, 0.175, 1)" },
+        );
+        morphing.onfinish = morphing.oncancel = () => {
+          joinCard.style.overflow = "";
+          morphing = null;
+        };
+      }
+
+      function renderDone(joined, focus) {
+        const done = $("#tpl-done").content.firstElementChild.cloneNode(true);
+        const first = joined.name.split(/\s+/)[0];
+        $("h2", done).textContent = joined.duplicate
+          ? `You're already on the list, ${first}.`
+          : `You're on the list, ${first}.`;
+        $("p", done).textContent =
+          `We'll email ${joined.email} when the beta opens.`;
+        $(".link", done).addEventListener("click", () => {
+          store.del("sill-waitlist");
+          renderForm();
+          $("#name").focus();
+        });
+        morphCard(() => joinBody.replaceChildren(done));
+        if (focus) joinCard.focus({ preventScroll: true });
+      }
+
+      function renderForm() {
+        morphCard(() =>
+          joinBody.replaceChildren($("#tpl-form").content.cloneNode(true)),
+        );
+        const form = $("form", joinBody);
+        const name = form.elements.name,
+          email = form.elements.email;
+        const button = $("button[type=submit]", form),
+          label = $(".btn-label", button),
+          status = $(".status", form);
+
+        function check(input, show) {
+          const v = input.value.trim();
+          const msg = !v
+            ? input === name
+              ? "Enter your name."
+              : "Enter your email address."
+            : input === email && !EMAIL_RE.test(v)
+              ? "That email looks incomplete. Check it has an @ and a domain."
+              : "";
+          const field = input.closest(".field");
+          if (show || field.classList.contains("invalid")) {
+            field.classList.toggle("invalid", !!msg);
+            $(".field-error", field).textContent = msg;
+            input.setAttribute("aria-invalid", msg ? "true" : "false");
+          }
+          return !msg;
+        }
+        [name, email].forEach((input) => {
+          input.addEventListener("blur", () => {
+            if (input.value) check(input, true);
+          });
+          input.addEventListener("input", () => check(input, false)); // clears the error as soon as it's fixed
+        });
+
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          if (button.getAttribute("aria-busy") === "true") return;
+          const okName = check(name, true),
+            okEmail = check(email, true);
+          if (!okName || !okEmail) {
+            (!okName ? name : email).focus();
+            // A small head-shake, like a rejected macOS password field.
+            if (!reduced)
+              form.animate(
+                [
+                  { transform: "none" },
+                  { transform: "translateX(-7px)" },
+                  { transform: "translateX(6px)" },
+                  { transform: "translateX(-4px)" },
+                  { transform: "translateX(2px)" },
+                  { transform: "none" },
+                ],
+                { duration: 380, easing: "ease-out" },
+              );
+            return;
+          }
+
+          const joined = {
+            name: name.value.trim(),
+            email: email.value.trim().toLowerCase(),
+          };
+          if (form.elements.company.value) {
+            finish(joined);
+            return;
+          } // bot: pretend it worked
+
+          if (!WAITLIST_ENDPOINT) {
+            status.className = "status";
+            status.textContent =
+              "Preview only: no sign-up endpoint is set yet, so nothing was saved.";
+            return;
+          }
+
+          const body = new URLSearchParams({
+            name: joined.name,
+            email: joined.email,
+            tried: form.elements.tried.value,
+            source:
+              params.get("utm_source") ||
+              params.get("ref") ||
+              location.hostname ||
+              "direct",
+            referrer: document.referrer,
+            company: "",
+          });
+          button.setAttribute("aria-busy", "true");
+          label.textContent = "Joining…";
+          status.className = "status";
+          status.textContent = "";
+          try {
+            const res = await fetch(WAITLIST_ENDPOINT, {
+              method: "POST",
+              body,
+            });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data.error || "rejected");
+            finish({ ...joined, duplicate: !!data.duplicate });
+          } catch (err) {
+            status.className = "status error";
+            status.textContent =
+              err.message === "invalid_email"
+                ? "That email address wasn't accepted. Check it and try again."
+                : "Couldn't reach the sign-up server. Check your connection and try again.";
+          } finally {
+            button.setAttribute("aria-busy", "false");
+            label.textContent = "Join the waitlist";
+          }
+        });
+
+        function finish(joined) {
+          store.set("sill-waitlist", joined);
+          renderDone(joined, true);
+        }
+      }
+
+      const already = store.get("sill-waitlist");
+      already && already.email ? renderDone(already, false) : renderForm();
+      joinBody.dataset.ready = "1"; // the first render has nothing to morph from
+    </script>
+  </body>
+</html>

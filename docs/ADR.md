@@ -126,6 +126,14 @@ Synthesising the paste would need Accessibility, which v1 does not request.
 **Decision:** JSON manifests plus blob files, capped by count and bytes and pruned on launch. GRDB
 not added. Revisit only if clipboard search becomes slow at the cap.
 
+## 2026-09-19 — Waitlist stored in Google Sheets via Apps Script
+**Decision:** `site/index.html` posts sign-ups (url-encoded, so no CORS preflight) to an Apps Script
+web app bound to a Google Sheet (`site/google-apps-script/Code.gs`), which de-duplicates by email.
+**Alternatives:** Formspree / Buttondown / Loops (another account and vendor, export needed later);
+a serverless function plus database (more to run for a pre-launch list).
+**Why:** free, no new vendor, and the list is immediately usable as a spreadsheet. Move to the
+email tool once launch emails need sending at scale.
+
 ## Still open (need the Mac)
 - Panel window level (`.statusBar` used) vs. Spotlight / notification banners.
 - Tracking-area reliability over the notch cutout.
