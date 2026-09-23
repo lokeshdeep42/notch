@@ -129,7 +129,7 @@ moving on — no feature will compensate for it.
 |---|---|---|
 | M8-T1 | Pick and integrate a merchant-of-record (Polar / Lemon Squeezy / Paddle) | Never raw Stripe alone — see `05-RELEASE.md` |
 | M8-T2 | Licence key activation, offline grace period, device limit | Works offline for N days after a successful check |
-| M8-T3 | 14-day trial with honest countdown | No nagging before day 10; clear, non-hostile expiry |
+| M8-T3 | 7-day trial with honest countdown | No nagging before day 5; clear, non-hostile expiry |
 | M8-T4 | Free-tier gating (media + battery free; shelf/clipboard/tuning paid) | Gate is clear, never a surprise mid-action |
 
 ---

@@ -85,7 +85,7 @@ Keep a **second processor configured but idle** so a freeze is a config change, 
 
 ### Pricing
 - Intro **$15–19**, standard **$24** one-time. Paid major-version upgrades later.
-- **14-day full trial.** NotchNook launched at $40 with a 1-hour trial and had to reverse both.
+- **7-day full trial.** NotchNook launched at $40 with a 1-hour trial and had to reverse both.
 - Consider free-forever media + battery, with shelf/clipboard/hover-tuning as the paid unlock.
 - Honour refunds quickly and visibly. "Hard to get a refund" appears in competitor reviews and is
   entirely self-inflicted.

@@ -69,7 +69,7 @@ people who bounced off a competitor.
 6. **Battery and charging status** in the collapsed pill — event-driven, zero polling.
 7. **Settings + onboarding.** Explains each permission at the moment it is needed, deep-links to
    the exact System Settings pane, and verifies the grant.
-8. **Licensing.** Real 14-day trial, one-time purchase, Sparkle auto-updates.
+8. **Licensing.** Real 7-day trial, one-time purchase, Sparkle auto-updates.
 
 ## Explicit non-goals for v1
 
@@ -101,8 +101,9 @@ the one thing that category's happiest users talk about.
 
 - **One-time licence, ~$15–19 intro / $24 standard.** Paid major-version upgrades later.
   Subscription resentment is loud and specific in this category's reviews.
-- **14-day full-feature trial.** NotchNook launched with a 1-hour trial and a $40 price and had
-  to walk both back after Reddit feedback. Don't repeat that.
+- **7-day full-feature trial** (changed from 14 days on 2026-09-23, see ADR). NotchNook launched
+  with a 1-hour trial and a $40 price and had to walk both back after Reddit feedback. A week is
+  still a real trial — don't repeat that.
 - **Free tier consideration:** media + battery free forever; shelf + clipboard + hover tuning are
   the paid unlock. This maximises install base and word-of-mouth, which is how utilities in this
   category actually spread.

@@ -134,6 +134,14 @@ a serverless function plus database (more to run for a pre-launch list).
 **Why:** free, no new vendor, and the list is immediately usable as a spreadsheet. Move to the
 email tool once launch emails need sending at scale.
 
+## 2026-09-23 — Trial length: 7 days instead of 14
+**Decision:** The full-feature trial is 7 days. Landing page, spec, build plan (M8-T3: no nagging
+before day 5) and release doc updated together.
+**Alternatives:** 14 days (the original spec), a feature-limited free tier with no time limit.
+**Why:** product owner's call. A week still covers a full work cycle of docking, undocking and
+travel, which is what the trial has to prove; it stays far from the 1-hour trial that NotchNook had
+to walk back.
+
 ## Still open (need the Mac)
 - Panel window level (`.statusBar` used) vs. Spotlight / notification banners.
 - Tracking-area reliability over the notch cutout.
